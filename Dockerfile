@@ -1,6 +1,6 @@
 # Stage 1: Build stage
 
-FROM node:22.21-bookworm AS builder
+FROM node:22.22-bookworm AS builder
 WORKDIR /usr/src/
 RUN npm install -g npm@11.6.2
 RUN apt-get update && apt-get install -y --no-install-recommends \

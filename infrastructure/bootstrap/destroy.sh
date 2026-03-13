@@ -21,11 +21,11 @@ print_substep() {
 }
 
 print_success() {
-  echo -e "${GREEN}✅ $1${NC}"
+  echo -e "${GREEN} $1${NC}"
 }
 
 print_error() {
-  echo -e "${RED}❌ $1${NC}"
+  echo -e "${RED} $1${NC}"
 }
 
 # Configuration
@@ -47,7 +47,7 @@ export AWS_PAGER=""
 
 echo ""
 echo -e "${RED}============================================================${NC}"
-echo -e "${RED}⚠️  WARNING: DESTRUCTIVE OPERATION${NC}"
+echo -e "${RED}  WARNING: DESTRUCTIVE OPERATION${NC}"
 echo -e "${RED}============================================================${NC}"
 echo ""
 echo "This will destroy ALL resources:"
@@ -210,9 +210,9 @@ try:
     print(f"Deleting bucket {bucket_name}...")
     bucket.delete()
     
-    print("✅ Bucket deleted successfully")
+    print(" Bucket deleted successfully")
 except Exception as e:
-    print(f"❌ Error: {e}", file=sys.stderr)
+    print(f" Error: {e}", file=sys.stderr)
     sys.exit(1)
 EOF
 

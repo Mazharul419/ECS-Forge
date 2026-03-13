@@ -1,0 +1,100 @@
+name: Terragrunt Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - global
+          - dev
+          - prod
+          - all
+      action:
+        description: 'Terragrunt action'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+      confirm_apply:
+        description: 'Type "confirm-apply" to run apply'
+        required: false
+        type: string
+
+env:
+  AWS_REGION: eu-west-2
+  TERRAGRUNT_VERSION: 0.93.13
+  TERRAFORM_VERSION: 1.14.1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check apply confirmation
+        if: inputs.action == 'apply' && inputs.confirm_apply != 'confirm-apply'
+        run: |
+          echo "Apply action requires confirmation."
+          echo "Please type 'confirm-apply' in the confirm_apply field."
+          exit 1
+
+  terragrunt:
+    name: Terragrunt ${{ inputs.action }} - ${{ inputs.environment }}
+    needs: validate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+          role-duration-seconds: 3600
+
+      - name: Set working directory
+        id: set-dir
+        run: |
+          if [ "${{ inputs.environment }}" == "all" ]; then
+            echo "dir=live" >> $GITHUB_OUTPUT
+          else
+            echo "dir=live/${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Terragrunt Plan
+        if: inputs.action == 'plan'
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: 'run-all plan'
+
+      - name: Terragrunt Apply
+        if: inputs.action == 'apply'
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: 'run-all apply --terragrunt-non-interactive'
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Terragrunt ${{ inputs.action }} Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action**: ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Directory**: ${{ steps.set-dir.outputs.dir }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
