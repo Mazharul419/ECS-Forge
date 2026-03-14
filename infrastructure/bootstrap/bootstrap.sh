@@ -286,7 +286,7 @@ fi
 print_substep "Logging into ECR..."
 aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_URL"
 
-print_substep "Building Docker image... - this will take minimum 30 minutes, and can go up to 1 hour depending on your specs"
+print_substep "Building Docker image... - this will take 50 minutes to an hour"
 cd "$REPO_DIR"
 docker build -t "${PROJECT_NAME}:${INITIAL_TAG}" .
 
