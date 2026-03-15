@@ -66,9 +66,9 @@ jobs:
         id: set-dir
         run: |
           if [ "${{ inputs.environment }}" == "all" ]; then
-            echo "dir=infrastructure/live" >> $GITHUB_OUTPUT
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live" >> $GITHUB_OUTPUT
           else
-            echo "dir=infrastructure/live/${{ inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live/${{ inputs.environment }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Print working directory
