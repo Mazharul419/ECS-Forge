@@ -259,7 +259,7 @@ resource "aws_iam_role_policy" "github_actions_terragrunt" {
 				"ec2:DeleteSecurityGroup",
 				"ec2:RevokeSecurityGroupEgress"
 			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:security-group/*"
+			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
 		},
 		{
 			"Effect": "Allow",
