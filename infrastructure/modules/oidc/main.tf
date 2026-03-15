@@ -208,7 +208,9 @@ resource "aws_iam_role_policy" "github_actions_terragrunt" {
 			"Action": [
 				"acm:DeleteCertificate",
 				"acm:DescribeCertificate",
-				"acm:ListTagsForCertificate"
+				"acm:ListTagsForCertificate",
+				"acm:AddTagsToCertificate",
+				"acm:RequestCertificate"
 			],
 			"Resource": "arn:aws:acm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:certificate/*"
 		},
@@ -246,7 +248,7 @@ resource "aws_iam_role_policy" "github_actions_terragrunt" {
 				"ec2:CreateRouteTable",
 				"ec2:DeleteRouteTable"
 			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:route-table/*"
+			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
 		},
 		{
 			"Effect": "Allow",
