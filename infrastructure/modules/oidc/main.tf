@@ -140,6 +140,30 @@ resource "aws_iam_role_policy" "github_actions_terragrunt" {
 		{
 			"Effect": "Allow",
 			"Action": [
+				"s3:ListBucket"
+			],
+			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:PutObject"
+			],
+			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tfstate"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:GetObject",
+				"s3:PutObject",
+				"s3:DeleteObject"
+			],
+			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tflock"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
 				"acm:RequestCertificate",
 				"cloudtrail:DescribeTrails",
 				"cloudtrail:ListEventDataStores",
