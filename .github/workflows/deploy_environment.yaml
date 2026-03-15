@@ -80,7 +80,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_dir: infrastructure/${{ steps.set-dir.outputs.dir }}
           tg_command: 'run-all plan'
 
       - name: Terragrunt Apply
@@ -89,7 +89,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_dir: infrastructure/${{ steps.set-dir.outputs.dir }}
           tg_command: 'run-all apply --terragrunt-non-interactive'
 
       - name: Summary
