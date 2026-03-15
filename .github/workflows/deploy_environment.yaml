@@ -81,8 +81,8 @@ jobs:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
           tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run-all plan'
-          tg_cli_args: '--terragrunt-non-interactive'
+          tg_command: 'run --all plan'
+          tg_cli_args: '--non-interactive'
 
       - name: Terragrunt Apply
         if: inputs.action == 'apply'
@@ -91,8 +91,8 @@ jobs:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
           tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run-all apply'
-          tg_cli_args: '--terragrunt-non-interactive'
+          tg_command: 'run --all apply'
+          tg_cli_args: '--non-interactive'
 
       - name: Summary
         if: always()
