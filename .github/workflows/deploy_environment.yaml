@@ -28,6 +28,7 @@ env:
   TERRAGRUNT_VERSION: 0.93.13
   TERRAFORM_VERSION: 1.14.1
   ASDF_TERRAGRUNT_SKIP_CHECKSUM: "true"
+  TF_VAR_cloudflare_api_token: ${{ secrets.TF_VAR_cloudflare_api_token }}
 
 permissions:
   id-token: write
