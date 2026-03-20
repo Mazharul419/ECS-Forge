@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Print working directory
-        run: echo $GITHUB_WORKSPACE
+        run: echo ${{ steps.set-dir.outputs.dir }}
       
       - name: Create common.hcl
         run: |

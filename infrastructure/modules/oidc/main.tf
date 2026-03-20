@@ -79,7 +79,8 @@ policy = jsonencode({
       Sid    = "AllowPassRole"
       Effect = "Allow"
       Action = [
-        "iam:PassRole"
+        "iam:PassRole",
+		    "iam:CreateRole"
       ]
       Resource = [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*-ecs-execution-role",
@@ -138,262 +139,292 @@ resource "aws_iam_role_policy" "github_actions_terragrunt" {
 	"Version": "2012-10-17",
 	"Statement": [
 		{
-			"Effect": "Allow",
-			"Action": [
-				"s3:ListBucket"
-			],
-			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"s3:GetObject",
-				"s3:PutObject"
-			],
-			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tfstate"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"s3:GetObject",
-				"s3:PutObject",
-				"s3:DeleteObject"
-			],
-			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tflock"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"acm:RequestCertificate",
-				"cloudtrail:DescribeTrails",
-				"cloudtrail:ListEventDataStores",
-				"cloudtrail:ListTrails",
-				"cloudtrail:LookupEvents",
-				"ec2:CreateTags",
-				"ec2:DescribeAvailabilityZones",
-				"ec2:DescribeInternetGateways",
-				"ec2:DescribeNetworkAcls",
-				"ec2:DescribeNetworkInterfaces",
-				"ec2:DescribePrefixLists",
-				"ec2:DescribeRegions",
-				"ec2:DescribeRouteTables",
-				"ec2:DescribeSecurityGroups",
-				"ec2:DescribeSubnets",
-				"ec2:DescribeVpcEndpoints",
-				"ec2:DescribeVpcs",
-				"ec2:DisassociateRouteTable",
-				"ecr:GetRegistryScanningConfiguration",
-				"ecs:DeregisterTaskDefinition",
-				"ecs:DescribeTaskDefinition",
-				"elasticloadbalancing:CreateListener",
-				"elasticloadbalancing:CreateLoadBalancer",
-				"elasticloadbalancing:DescribeCapacityReservation",
-				"elasticloadbalancing:DescribeListenerAttributes",
-				"elasticloadbalancing:DescribeListeners",
-				"elasticloadbalancing:DescribeLoadBalancerAttributes",
-				"elasticloadbalancing:DescribeLoadBalancers",
-				"elasticloadbalancing:DescribeTags",
-				"elasticloadbalancing:DescribeTargetGroupAttributes",
-				"elasticloadbalancing:DescribeTargetGroups",
-				"logs:DescribeLogGroups",
-				"logs:ListTagsForResource",
-				"resource-explorer-2:ListIndexes",
-				"route53:AssociateVPCWithHostedZone",
-				"sts:GetCallerIdentity"
-			],
-			"Resource": "*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"acm:DeleteCertificate",
-				"acm:DescribeCertificate",
-				"acm:ListTagsForCertificate",
-				"acm:AddTagsToCertificate",
-				"acm:RequestCertificate"
-			],
-			"Resource": "arn:aws:acm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:certificate/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"cloudtrail:GetTrail",
-				"cloudtrail:GetTrailStatus"
-			],
-			"Resource": "arn:aws:cloudtrail:${var.aws_region}:${data.aws_caller_identity.current.account_id}:trail/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"config:DescribeConfigurationRecorderStatus",
-				"config:DescribeConfigurationRecorders"
-			],
-			"Resource": "arn:aws:config:${var.aws_region}:${data.aws_caller_identity.current.account_id}:configuration-recorder/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:AttachInternetGateway",
-				"ec2:CreateInternetGateway",
-				"ec2:DeleteInternetGateway",
-				"ec2:DetachInternetGateway"
-			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:internet-gateway/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:AssociateRouteTable",
-				"ec2:CreateRoute",
-				"ec2:CreateRouteTable",
-				"ec2:DeleteRouteTable"
-			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:AuthorizeSecurityGroupEgress",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:CreateSecurityGroup",
-				"ec2:DeleteSecurityGroup",
-				"ec2:RevokeSecurityGroupEgress"
-			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:CreateSubnet",
-				"ec2:DeleteSubnet",
-				"ec2:ModifySubnetAttribute"
-			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:CreateVpcEndpoint",
-				"ec2:DeleteVpcEndpoints"
-			],
-			"Resource": [
-				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:route-table/*",
-				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/*",
-				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc-endpoint/*"
-			]
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ec2:AttachInternetGateway",
-				"ec2:CreateRouteTable",
-				"ec2:CreateSubnet",
-				"ec2:CreateVpc",
-				"ec2:CreateVpcEndpoint",
-				"ec2:DeleteVpc",
-				"ec2:DescribeVpcAttribute",
-				"ec2:DetachInternetGateway",
-				"ec2:ModifyVpcAttribute"
-			],
-			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ecr:DescribeImages",
-				"ecr:DescribeRepositories",
-				"ecr:GetLifecyclePolicy",
-				"ecr:ListTagsForResource"
-			],
-			"Resource": "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ecs:CreateCluster",
-				"ecs:DeleteCluster",
-				"ecs:DescribeClusters"
-			],
-			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"ecs:CreateService",
-				"ecs:DeleteService",
-				"ecs:DescribeServices",
-				"ecs:UpdateService"
-			],
-			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:service/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "ecs:RegisterTaskDefinition",
-			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:task-definition/*:*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "elasticloadbalancing:DeleteListener",
-			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/app/*/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "elasticloadbalancing:DeleteListener",
-			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/gwy/*/*/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "elasticloadbalancing:DeleteListener",
-			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/net/*/*/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"elasticloadbalancing:AddTags",
-				"elasticloadbalancing:DeleteLoadBalancer",
-				"elasticloadbalancing:ModifyLoadBalancerAttributes"
-			],
-			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:loadbalancer/*"
-		},
-				{
-			"Effect": "Allow",
-			"Action": "elasticloadbalancing:AddTags",
-			"Resource": [
-				"arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:targetgroup/*",
-				"arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/*"
-			]
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"elasticloadbalancing:CreateTargetGroup",
-				"elasticloadbalancing:DeleteTargetGroup",
-				"elasticloadbalancing:ModifyTargetGroupAttributes"
-			],
-			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:targetgroup/*/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"kms:CreateGrant",
-				"kms:DescribeKey"
-			],
-			"Resource": "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": [
-				"logs:CreateLogGroup",
-				"logs:DeleteLogGroup",
-				"logs:PutRetentionPolicy"
-			],
-			"Resource": "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:*"
-		},
-		{
-			"Effect": "Allow",
-			"Action": "resource-explorer-2:Search",
-			"Resource": "arn:aws:resource-explorer-2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:view/*/*"
-		}
+      "Effect" : "Allow",
+      "Action" : "*",
+      "Resource" : "*"
+    }
 	]
-})
+		})
 }
+
+# Admin access: https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AdministratorAccess.html
+
+# Below is minimal IAM permissions attempt - longer term goal due to time constraints
+
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"s3:ListBucket"
+# 			],
+# 			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"s3:GetObject",
+# 				"s3:PutObject"
+# 			],
+# 			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tfstate"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"s3:GetObject",
+# 				"s3:PutObject",
+# 				"s3:DeleteObject"
+# 			],
+# 			"Resource": "arn:aws:s3:::${var.project_name}-terraform-state-${var.account_id}-${var.aws_region}/*.tflock"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"acm:RequestCertificate",
+# 				"cloudtrail:DescribeTrails",
+# 				"cloudtrail:ListEventDataStores",
+# 				"cloudtrail:ListTrails",
+# 				"cloudtrail:LookupEvents",
+# 				"ec2:CreateTags",
+# 				"ec2:DescribeAvailabilityZones",
+# 				"ec2:DescribeInternetGateways",
+# 				"ec2:DescribeNetworkAcls",
+# 				"ec2:DescribeNetworkInterfaces",
+# 				"ec2:DescribePrefixLists",
+# 				"ec2:DescribeRegions",
+# 				"ec2:DescribeRouteTables",
+# 				"ec2:DescribeSecurityGroups",
+# 				"ec2:DescribeSubnets",
+# 				"ec2:DescribeVpcEndpoints",
+# 				"ec2:DescribeVpcs",
+# 				"ec2:DisassociateRouteTable",
+# 				"ecr:GetRegistryScanningConfiguration",
+# 				"ecs:DeregisterTaskDefinition",
+# 				"ecs:DescribeTaskDefinition",
+# 				"elasticloadbalancing:CreateListener",
+# 				"elasticloadbalancing:CreateLoadBalancer",
+# 				"elasticloadbalancing:DescribeCapacityReservation",
+# 				"elasticloadbalancing:DescribeListenerAttributes",
+# 				"elasticloadbalancing:DescribeListeners",
+# 				"elasticloadbalancing:DescribeLoadBalancerAttributes",
+# 				"elasticloadbalancing:DescribeLoadBalancers",
+# 				"elasticloadbalancing:DescribeTags",
+# 				"elasticloadbalancing:DescribeTargetGroupAttributes",
+# 				"elasticloadbalancing:DescribeTargetGroups",
+# 				"logs:DescribeLogGroups",
+# 				"logs:ListTagsForResource",
+# 				"resource-explorer-2:ListIndexes",
+# 				"route53:AssociateVPCWithHostedZone",
+# 				"sts:GetCallerIdentity"
+# 			],
+# 			"Resource": "*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"acm:DeleteCertificate",
+# 				"acm:DescribeCertificate",
+# 				"acm:ListTagsForCertificate",
+# 				"acm:AddTagsToCertificate",
+# 				"acm:RequestCertificate"
+# 			],
+# 			"Resource": "arn:aws:acm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:certificate/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"cloudtrail:GetTrail",
+# 				"cloudtrail:GetTrailStatus"
+# 			],
+# 			"Resource": "arn:aws:cloudtrail:${var.aws_region}:${data.aws_caller_identity.current.account_id}:trail/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"config:DescribeConfigurationRecorderStatus",
+# 				"config:DescribeConfigurationRecorders"
+# 			],
+# 			"Resource": "arn:aws:config:${var.aws_region}:${data.aws_caller_identity.current.account_id}:configuration-recorder/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:AttachInternetGateway",
+# 				"ec2:CreateInternetGateway",
+# 				"ec2:DeleteInternetGateway",
+# 				"ec2:DetachInternetGateway"
+# 			],
+# 			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:internet-gateway/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:AssociateRouteTable",
+# 				"ec2:CreateRoute",
+# 				"ec2:CreateRouteTable",
+# 				"ec2:DeleteRouteTable"
+# 			],
+# 			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:AuthorizeSecurityGroupEgress",
+# 				"ec2:AuthorizeSecurityGroupIngress",
+# 				"ec2:CreateSecurityGroup",
+# 				"ec2:DeleteSecurityGroup",
+# 				"ec2:RevokeSecurityGroupEgress"
+# 			],
+# 			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:CreateSubnet",
+# 				"ec2:DeleteSubnet",
+# 				"ec2:ModifySubnetAttribute"
+# 			],
+# 			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:CreateVpcEndpoint",
+# 				"ec2:DeleteVpcEndpoints"
+# 			],
+# 			"Resource": [
+# 				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:route-table/*",
+# 				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/*",
+# 				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc-endpoint/*",
+# 				"arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:security-group/*"
+# 			]
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ec2:AttachInternetGateway",
+# 				"ec2:CreateRouteTable",
+# 				"ec2:CreateSubnet",
+# 				"ec2:CreateVpc",
+# 				"ec2:CreateVpcEndpoint",
+# 				"ec2:DeleteVpc",
+# 				"ec2:DescribeVpcAttribute",
+# 				"ec2:DetachInternetGateway",
+# 				"ec2:ModifyVpcAttribute"
+# 			],
+# 			"Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ecr:DescribeImages",
+# 				"ecr:DescribeRepositories",
+# 				"ecr:GetLifecyclePolicy",
+# 				"ecr:ListTagsForResource"
+# 			],
+# 			"Resource": "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ecs:CreateCluster",
+# 				"ecs:DeleteCluster",
+# 				"ecs:DescribeClusters",
+# 				"ecs:tagResource"
+# 			],
+# 			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"ecs:CreateService",
+# 				"ecs:DeleteService",
+# 				"ecs:DescribeServices",
+# 				"ecs:UpdateService"
+# 			],
+# 			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:service/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": "ecs:RegisterTaskDefinition",
+# 			"Resource": "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:task-definition/*:*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": "elasticloadbalancing:DeleteListener",
+# 			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/app/*/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": "elasticloadbalancing:DeleteListener",
+# 			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/gwy/*/*/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": "elasticloadbalancing:DeleteListener",
+# 			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/net/*/*/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"elasticloadbalancing:AddTags",
+# 				"elasticloadbalancing:DeleteLoadBalancer",
+# 				"elasticloadbalancing:ModifyLoadBalancerAttributes"
+# 			],
+# 			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:loadbalancer/*"
+# 		},
+# 				{
+# 			"Effect": "Allow",
+# 			"Action": "elasticloadbalancing:AddTags",
+# 			"Resource": [
+# 				"arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:targetgroup/*",
+# 				"arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:listener/*"
+# 			]
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"elasticloadbalancing:CreateTargetGroup",
+# 				"elasticloadbalancing:DeleteTargetGroup",
+# 				"elasticloadbalancing:ModifyTargetGroupAttributes"
+# 			],
+# 			"Resource": "arn:aws:elasticloadbalancing:${var.aws_region}:${data.aws_caller_identity.current.account_id}:targetgroup/*/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"kms:CreateGrant",
+# 				"kms:DescribeKey"
+# 			],
+# 			"Resource": "arn:aws:kms:${var.aws_region}:${data.aws_caller_identity.current.account_id}:key/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"logs:CreateLogGroup",
+# 				"logs:DeleteLogGroup",
+# 				"logs:PutRetentionPolicy",
+# 				"logs:TagResource"
+# 			],
+# 			"Resource": "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": "resource-explorer-2:Search",
+# 			"Resource": "arn:aws:resource-explorer-2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:view/*/*"
+# 		},
+# 		{
+# 			"Effect": "Allow",
+# 			"Action": [
+# 				"iam:CreateRole",
+# 				"iam:TagRole",
+# 				"iam:GetRole",
+# 				"iam:ListRolePolicies",
+# 				"iam:ListAttachedRolePolicies",
+# 				"iam:ListInstanceProfilesForRole"
+# 			],
+# 			"Resource": [
+# 			"arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*-ecs-execution-role",
+# 			"arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.project_name}-*-ecs-task-role"
+# 			]
+# 		}
+# ]
+# # })
+# }
