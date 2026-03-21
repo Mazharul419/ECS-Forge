@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rsync jq gnupg \
     libgcc1 \
     && rm -rf /var/lib/apt/lists/*
-RUN git clone --recursive --depth 1 https://github.com/coder/code-server.git code-server
+RUN git clone --recursive --depth 1 --branch v4.112.0 https://github.com/coder/code-server.git code-server
 WORKDIR /usr/src/code-server
 RUN git submodule update --init
 RUN quilt push -a
