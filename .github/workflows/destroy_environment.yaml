@@ -4,22 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy'
+        description: 'Environment to destroy'
         required: true
         type: choice
         options:
           - dev
           - prod
           - all
-      action:
-        description: 'Terragrunt action'
-        required: true
-        type: choice
-        options:
-          - plan
-          - apply
-      confirm_apply:
-        description: 'Type "confirm-apply" to run apply'
+      confirm_destroy:
+        description: 'Type "confirm-destroy" to run destroy'
         required: false
         type: string
 
@@ -40,15 +33,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Check apply confirmation
-        if: inputs.action == 'apply' && inputs.confirm_apply != 'confirm-apply'
+      - name: Check destroy confirmation
+        if: inputs.confirm_destroy != 'confirm-destroy'
         run: |
-          echo "Apply action requires confirmation."
-          echo "Please type 'confirm-apply' in the confirm_apply field."
+          echo "Destroy action requires confirmation."
+          echo "Please type 'confirm-destroy' in the confirm_destroy field."
           exit 1
 
   terragrunt:
-    name: Terragrunt ${{ inputs.action }} - ${{ inputs.environment }}
+    name: Terragrunt Destroy - ${{ inputs.environment }}
     needs: validate
     runs-on: ubuntu-latest
     
@@ -86,24 +79,14 @@ jobs:
           }
           EOF
 
-      - name: Terragrunt Plan
-        if: inputs.action == 'plan'
+      - name: Terragrunt Destroy
+        if: inputs.action == 'destroy'
         uses: gruntwork-io/terragrunt-action@v2
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
           tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run --all plan --terragrunt-exclude-dir ./global'
-          tg_cli_args: '--non-interactive'
-
-      - name: Terragrunt Apply
-        if: inputs.action == 'apply'
-        uses: gruntwork-io/terragrunt-action@v2
-        with:
-          tf_version: ${{ env.TERRAFORM_VERSION }}
-          tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run --all apply --terragrunt-exclude-dir ./global'
+          tg_command: 'run --all destroy --terragrunt-exclude-dir ./global'
           tg_cli_args: '--non-interactive'
 
       - name: Summary
