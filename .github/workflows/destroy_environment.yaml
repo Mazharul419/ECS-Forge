@@ -1,4 +1,4 @@
-name: Terragrunt Deploy
+name: Terragrunt Destroy
 
 on:
   workflow_dispatch:
