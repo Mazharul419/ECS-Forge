@@ -68,6 +68,14 @@ jobs:
           }
           EOF
 
+      - name: Set working directory
+        id: set-dir
+        run: |
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live/dev" >> $GITHUB_OUTPUT
+
+      - name: Print working directory
+        run: echo ${{ steps.set-dir.outputs.dir }}
+
       - name: Terragrunt Destroy
         if: inputs.action == 'destroy'
         uses: gruntwork-io/terragrunt-action@v2
@@ -115,6 +123,14 @@ jobs:
             cloudflare_zone_id = "${{ secrets.CLOUDFLARE_ZONE_ID }}"
           }
           EOF
+
+      - name: Set working directory
+        id: set-dir
+        run: |
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live/prod" >> $GITHUB_OUTPUT
+
+      - name: Print working directory
+        run: echo ${{ steps.set-dir.outputs.dir }}
 
       - name: Terragrunt Destroy
         if: inputs.action == 'destroy'

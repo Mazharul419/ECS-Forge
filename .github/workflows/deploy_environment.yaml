@@ -64,6 +64,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 3600
 
+      - name: Set working directory
+        id: set-dir
+        run: |
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live/dev" >> $GITHUB_OUTPUT
+
       - name: Print working directory
         run: echo ${{ steps.set-dir.outputs.dir }}
       
@@ -84,7 +89,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: /infrastructure/live/dev
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: run --all plan
           tg_cli_args: --non-interactive
 
@@ -94,7 +99,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: /infrastructure/live/dev
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: run --all apply
           tg_cli_args: --non-interactive
 
@@ -125,6 +130,11 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 3600
 
+      - name: Set working directory
+        id: set-dir
+        run: |
+            echo "dir=$GITHUB_WORKSPACE/infrastructure/live/prod" >> $GITHUB_OUTPUT
+
       - name: Print working directory
         run: echo ${{ steps.set-dir.outputs.dir }}
       
@@ -145,7 +155,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: /infrastructure/live/prod
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: run --all plan
           tg_cli_args: --non-interactive
 
@@ -155,7 +165,7 @@ jobs:
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: /infrastructure/live/prod
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: run --all apply
           tg_cli_args: --non-interactive
 
