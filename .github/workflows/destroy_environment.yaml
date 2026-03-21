@@ -77,12 +77,11 @@ jobs:
         run: echo ${{ steps.set-dir.outputs.dir }}
 
       - name: Terragrunt Destroy
-        if: inputs.action == 'destroy'
         uses: gruntwork-io/terragrunt-action@v2
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: /infrastructure/live/dev
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: 'run --all destroy'
           tg_cli_args: '--non-interactive'
 
@@ -133,12 +132,11 @@ jobs:
         run: echo ${{ steps.set-dir.outputs.dir }}
 
       - name: Terragrunt Destroy
-        if: inputs.action == 'destroy'
         uses: gruntwork-io/terragrunt-action@v2
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: ${GITHUB_WORKSPACE}/infrastructure/live/prod
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: 'run --all destroy'
           tg_cli_args: '--non-interactive'
 
