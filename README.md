@@ -94,14 +94,11 @@ Here's a blank template to get started. To avoid retyping too much info, do a se
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* [![Terraform][Terraform.io]][Terraform-url]
+* [![Terragrunt][Terragrunt.io]][Terragrunt-url]
+* [![Bash][Bash]][Bash-url]
+* [![Python][Python]][Python-url]
+* [![][]][-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -242,16 +239,16 @@ Project Link: [https://github.com/Mazharul419/ECS-Forge](https://github.com/Mazh
 [linkedin-url]: https://linkedin.com/in/mazharul419
 [product-screenshot]: images/screenshot.png
 <!-- Shields.io badges. You can a comprehensive list with many more badges at: https://github.com/inttter/md-badges -->
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
+[Terraform.io]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
+[Terraform-url]: https://developer.hashicorp.com/terraform
+[Terragrunt.io]: https://img.shields.io/badge/Terragrunt-7B42BC?style=for-the-badge&logo=terraform&logoColor=white
+[Terragrunt-url]: https://terragrunt.com/
+[Python]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
+[Python-url]: https://www.python.org/
+[Bash]: https://img.shields.io/badge/Bash-4EAA25?style=for-the-badge&logo=gnubash&logoColor=white
+[Bash-url]: https://www.gnu.org/software/bash/
+[HCL]: https://img.shields.io/badge/HCL-006BB6?style=for-the-badge&logo=hcl&logoColor=white 
+[HCL-url]: https://developer.hashicorp.com/terraform/language
 [Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
 [Laravel-url]: https://laravel.com
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
