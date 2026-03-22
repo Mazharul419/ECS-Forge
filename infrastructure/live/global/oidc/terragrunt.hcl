@@ -12,5 +12,5 @@ inputs = {
   aws_region   = include.root.locals.aws_region
   account_id   = include.root.locals.account_id
   github_org   = "Mazharul419"
-  github_repo  = "ecs_full"
+  github_repo  = "ECS-Forge"
 }
