@@ -28,15 +28,16 @@
 [![project_license][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+
+![export-1774305170726](https://github.com/user-attachments/assets/1dfdb3d9-8b23-407f-9f94-336233fdf405)
+=
 </div>
 
 <!-- PROJECT LOGO -->
-<br />
+
 <div align="center">
   <a href="https://github.com/Mazharul419/ECS-Forge">
-<img width="1160" height="911" alt="image" src="https://github.com/user-attachments/assets/d45b94af-536c-4fa1-a785-0e9d365bdfc2" />
   </a>
-
 
 
 <h3 align="center">ECS-Forge</h3>
@@ -88,7 +89,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+
 
 This is an end-to-end deployment of the code-server application via ECS Fargate. Upon push to main, or on successful pull request - a Docker image of the application is automatically built and pushed to ECR - where via manual trigger in Github Actions, deployment to Dev and Prod environment (or both) takes place.
 
