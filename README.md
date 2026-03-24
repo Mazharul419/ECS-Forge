@@ -132,6 +132,18 @@ The application is hosted on AWS - hidden behind an application load balancer.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+## Application
+
+### Dev Environment
+<img width="1913" height="999" alt="image" src="https://github.com/user-attachments/assets/fde6559b-4eee-49c9-8fd5-c580f5c61cc7" />
+
+### Prod Environment
+<img width="1918" height="995" alt="image" src="https://github.com/user-attachments/assets/5ec9349d-573a-43a5-afc1-e5428d1b801e" />
+
+## Deployments
+<img width="1910" height="985" alt="image" src="https://github.com/user-attachments/assets/9496ab93-9af3-4c91-a4ab-236d49e556b8" />
+
+
 
 <!-- GETTING STARTED -->
 ## Getting Started
