@@ -295,7 +295,7 @@ Project Link: [https://github.com/Mazharul419/ECS-Forge](https://github.com/Mazh
 [CloudFlare-url]: https://www.cloudflare.com/en-gb/
 [Github Actions]: https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white 
 [Github Actions-url]: https://github.com/features/actions
-[Git]: https://img.shields.io/badge/Git-F05032??style=for-the-badge&logo=git&logoColor=fff
+[Git]: https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=fff
 [Git-url]: https://git-scm.com/
 []: 
 [-url]: 
