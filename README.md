@@ -145,6 +145,9 @@ build_push_image.yaml
 deploy_image.yaml
 <img width="1905" height="931" alt="image" src="https://github.com/user-attachments/assets/1b78891e-2a17-4c8f-a99b-4947111a5270" />
 
+### Terragrunt Destroy
+destroy_environment.yaml
+<img width="1897" height="954" alt="image" src="https://github.com/user-attachments/assets/16e75764-5676-4363-9414-11e2f0c2ffd0" />
 
 
 <!-- GETTING STARTED -->
