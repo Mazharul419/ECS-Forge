@@ -129,10 +129,17 @@ The application is hosted on AWS - hidden behind an application load balancer.
 ### Prod Environment
 <img width="1918" height="995" alt="image" src="https://github.com/user-attachments/assets/5ec9349d-573a-43a5-afc1-e5428d1b801e" />
 
-## Deployments
+## Pipelines
+
+### Terragrunt Deploy
+deploy_environment.yaml
 <img width="1910" height="985" alt="image" src="https://github.com/user-attachments/assets/9496ab93-9af3-4c91-a4ab-236d49e556b8" />
 
+### Build and Push Docker image
+build_push_image.yaml
+<img width="1888" height="555" alt="image" src="https://github.com/user-attachments/assets/17c2cf1f-dd24-4907-a049-4d3d49666265" />
 
+### 
 
 <!-- GETTING STARTED -->
 ## Getting Started
