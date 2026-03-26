@@ -35,8 +35,12 @@
   </p>
 
 
-### 👇 View Demo 👇
+### 👇 View Summary 👇
 https://www.loom.com/share/2402051f736d492990df21803c33065a
+
+### 👇 DETAILED DEMO 👇 ###
+https://www.loom.com/share/748625955d4243fd9d828fcf824bd1c3
+
 </div>
 <!-- TABLE OF CONTENTS -->
 <details>
