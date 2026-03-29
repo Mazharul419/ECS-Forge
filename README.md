@@ -33,10 +33,6 @@
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 
-
-### 👇 View Summary 👇
-https://www.loom.com/share/2402051f736d492990df21803c33065a
-
 ### 👇 DETAILED DEMO 👇 ###
 https://www.loom.com/share/748625955d4243fd9d828fcf824bd1c3
 
