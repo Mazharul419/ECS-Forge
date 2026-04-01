@@ -22,7 +22,7 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
 <br><br>
 [Project Structure]()
 <br>
-[Dockerfile, LICENSE, README.md](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#dockerfile-license-readmemd)
+[Dockerfile, LICENSE, README.md, and App](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#dockerfile-license-readmemd)
 &nbsp;<br>
 []()
 <br>
@@ -202,15 +202,20 @@ Also explain how applications can access AWS services privately
 
 ## Structure Explained
 
-### Dockerfile, LICENSE, README.md
+### Dockerfile, LICENSE, README.md, and App
 
 ```
 ├── Dockerfile
 ├── LICENSE
 ├── README.md
+├── app
 ```
 
-The 
+According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image. 
+<br>
+The ReadME is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
+<br>
+The LICENSE specifies how the repo can be distributed and used.
 
 5. Root Configuration (terragrunt.hcl)
 File Location
