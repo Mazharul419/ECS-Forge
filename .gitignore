@@ -40,6 +40,10 @@ secrets/
 terraform.rc
 .terraformrc
 
+# Terraform auto-generated files
+backend.tf
+provider.tf
+
 # Crash log files
 crash.log
 crash.*.log

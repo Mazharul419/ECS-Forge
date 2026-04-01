@@ -55,9 +55,9 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 
 4. The resolver then makes a request to the TLD server carrying .dev domain which responds with the IP address of the domain’s nameserver mazharulislam.dev
 
-5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/#:~:text=It%E2%80%99s%20worth%20mentioning%20that%20in%20instances%20where%20the%20query%20is%20for%20a%20subdomain%20such%20as%20foo.example.com%20or%20blog.cloudflare.com%2C%20an%20additional%20nameserver%20will%20be%20added%20to%20the%20sequence%20after%20the%20authoritative%20nameserver%2C%20which%20is%20responsible%20for%20storing%20the%20subdomain%E2%80%99s%20CNAME%20record.) which holds the CNAME record
+5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) which holds the CNAME record
 
-6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/#:~:text=CNAME%20records%20%E2%86%97%20map%20a%20domain%20name%20to%20another%20(canonical)%20domain%20name.%20They%20can%20be%20used%20to%20resolve%20other%20record%20types%20present%20on%20the%20target%20domain%20name.) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
+6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
 
 7. The authoritative name server responds to the DNS resolver with the CNAME record which includes the DNS name of the load balancer*
 
@@ -67,13 +67,13 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 
 10. The resolver forwards to amazonaws.com domain where the A record is hosted
 
-11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#w2aab7c21:~:text=The%20Application%20Load%20Balancer%20has%20one%20IP%20address%20per%20enabled,determine%20the%20IP%20addresses%20of%20the%20Application%20Load%20Balancer%20nodes.) is returned to DNS resolver
+11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html) is returned to DNS resolver
 
 12. DNS resolver finally returns the IP address of the ALB, allowing the client to send a HTTP request in order to connect to the code-server application
 
 
 
-*If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://app.capacities.io/842d982e-dafe-4919-b038-f1da4582566c/8e0ae074-62d8-4d95-8335-f011e0c8108e))
+*If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
 
 
 
@@ -211,13 +211,41 @@ Also explain how applications can access AWS services privately
 ├── app
 ```
 
-According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image. 
-<br>
+According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
+<br><br>
 The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
-<br>
+<br><br>
 The LICENSE.txt file specifies how the repo can be distributed and used.
-<br>
+<br><br>
 The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
+
+### Architecture - decisions.md file and Documentation - README.md file
+
+```
+├── architecture
+│   └── decisions.md
+├── documentation
+│   └── README.md
+```
+
+The decisions.md file in the architecture directory outline the key architectural decisions made in the project. This file communicates IMPACT as opposed to details in the next file.
+<br><br>
+The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
+
+### Infrastructure directory
+
+```
+└── infrastructure
+    ├── backend.tf
+    ├── bootstrap
+    ├── live
+    ├── modules
+    ├── provider.tf
+    └── terragrunt.hcl
+```
+This directory contains EVERYTHING related to the infrastructure required to deploy the application.
+<br><br>
+The backend.tf
 
 5. Root Configuration (terragrunt.hcl)
 File Location
