@@ -28,8 +28,7 @@ This is documentation for the ECS-Forge repo - it contains docs related to:
 ## Access to website
 
 ![image](https://capacities-files.s3.eu-central-1.amazonaws.com/private/ce5be6b9-2b98-4142-bb70-1cabd8dc3727/raw.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA5VTNRR6EBR56K2NK%2F20260329%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20260329T093514Z&X-Amz-Expires=43200&X-Amz-Signature=a9b805365e3f128274138b6b9b7d2afe99eb2155becb4f62c5feaff5839c6b7f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject)
-[image
- - Notes](https://app.capacities.io/842d982e-dafe-4919-b038-f1da4582566c/ce5be6b9-2b98-4142-bb70-1cabd8dc3727)
+
 
 
 To access the live application in production environment, the user types in ***tm.mazharulislam.dev***(or ***tm-dev.mazharulislam.dev*** if accessing development environment).
@@ -104,125 +103,106 @@ Also explain how applications can access AWS services privately
 
 ## 4. Project Structure
 
----
-
-`.
+```
+.
 ├── Dockerfile
 ├── LICENSE
 ├── README.md
 ├── app
+├── architecture
+│   └── decisions.md
+├── documentation
+│   └── README.md
 ├── infrastructure
 │   ├── backend.tf
 │   ├── bootstrap
+│   │   ├── ReadMe.md
+│   │   ├── bootstrap.sh
+│   │   └── destroy.sh
 │   ├── live
+│   │   ├── _env
+│   │   │   └── common.hcl
+│   │   ├── dev
+│   │   │   ├── acm
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── alb
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── dns
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── ecs
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── env.hcl
+│   │   │   ├── security-groups
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── vpc
+│   │   │   │   └── terragrunt.hcl
+│   │   │   └── vpc-endpoints
+│   │   │       └── terragrunt.hcl
+│   │   ├── global
+│   │   │   ├── ecr
+│   │   │   │   └── terragrunt.hcl
+│   │   │   └── oidc
+│   │   │       └── terragrunt.hcl
+│   │   └── prod
+│   │       ├── acm
+│   │       │   └── terragrunt.hcl
+│   │       ├── alb
+│   │       │   └── terragrunt.hcl
+│   │       ├── dns
+│   │       │   └── terragrunt.hcl
+│   │       ├── ecs
+│   │       │   └── terragrunt.hcl
+│   │       ├── env.hcl
+│   │       ├── security-groups
+│   │       │   └── terragrunt.hcl
+│   │       ├── vpc
+│   │       │   └── terragrunt.hcl
+│   │       └── vpc-endpoints
+│   │           └── terragrunt.hcl
 │   ├── modules
+│   │   ├── acm
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── alb
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── dns
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── ecr
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── ecs
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── oidc
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── security-groups
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   ├── vpc
+│   │   │   ├── main.tf
+│   │   │   ├── outputs.tf
+│   │   │   └── variables.tf
+│   │   └── vpc-endpoints
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       └── variables.tf
 │   ├── provider.tf
 │   └── terragrunt.hcl
-└── other`
-
-
----
-
-`./infrastructure/bootstrap/
-├── ReadMe.md
-├── bootstrap.sh
-└── destroy.sh`
-
-
----
-
-`./infrastructure/live`
-
-`├── live
-│   ├── _env
-│   │   └── common.hcl
-│   ├── dev
-│   │   ├── acm
-│   │   │   └── terragrunt.hcl
-│   │   ├── alb
-│   │   │   └── terragrunt.hcl
-│   │   ├── dns
-│   │   │   └── terragrunt.hcl
-│   │   ├── ecs
-│   │   │   └── terragrunt.hcl
-│   │   ├── env.hcl
-│   │   ├── security-groups
-│   │   │   └── terragrunt.hcl
-│   │   ├── vpc
-│   │   │   └── terragrunt.hcl
-│   │   └── vpc-endpoints
-│   │       └── terragrunt.hcl
-│   ├── global
-│   │   ├── ecr
-│   │   │   └── terragrunt.hcl
-│   │   └── oidc
-│   │       └── terragrunt.hcl
-│   └── prod
-│       ├── acm
-│       │   └── terragrunt.hcl
-│       ├── alb
-│       │   └── terragrunt.hcl
-│       ├── dns
-│       │   └── terragrunt.hcl
-│       ├── ecs
-│       │   └── terragrunt.hcl
-│       ├── env.hcl
-│       ├── security-groups
-│       │   └── terragrunt.hcl
-│       ├── vpc
-│       │   └── terragrunt.hcl
-│       └── vpc-endpoints
-│           └── terragrunt.hcl`
-
-
----
-
-`./infrastructure/modules`
-
-`├── modules
-│   ├── acm
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── alb
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── dns
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── ecr
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── ecs
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── oidc
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── security-groups
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   ├── vpc
-│   │   ├── main.tf
-│   │   ├── outputs.tf
-│   │   └── variables.tf
-│   └── vpc-endpoints
-│       ├── main.tf
-│       ├── outputs.tf
-│       └── variables.tf`
-
-
----
-
-
-
----
+└── other
+    ├── both.tf
+    ├── createpolicy.tf
+    └── deletepolicy.tf
+```
 
 Structure Explained
 
