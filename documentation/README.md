@@ -1,26 +1,17 @@
 # Intro
 
-This is documentation for the ECS-Forge repo - it contains docs related to:
+This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
-- Traffic flow
-  
--	A bootstrap script for deploying the remote S3 backend, OIDC role, and ECR repository
+## Table of Contents
 
--	A destroy script for destroying the above resources
+[Traffic Flow Explained](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#traffic-flow-explained)
+<br>
+&nbsp; [Access to website](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#access-to-website)
+&nbsp; [Load Balancer and remaining](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#load-balancer-and-remaining)
+[]()
+[]()
+[]()
 
--	App repo (github link)
-
--	Dockerfile (builds image)
-
--	.dockerignore, .gitignore
-
--	Github workflows file with build + push image, deploy image, deploy infrastructure, destroy infrastructure
-
-</div>
-
-### Table of Contents
-
-[Links](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#links)
 
 
 # Traffic Flow Explained
@@ -76,16 +67,6 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 Use this section to explain flow from ALB to tasks in private subnet
 
 Also explain how applications can access AWS services privately
-
-
-
----
-
-
-
----
-
-
 
 ---
 
@@ -204,8 +185,17 @@ Also explain how applications can access AWS services privately
     └── deletepolicy.tf
 ```
 
-Structure Explained
+## Structure Explained
 
+### Dockerfile, LICENSE, README.md
+
+```
+├── Dockerfile
+├── LICENSE
+├── README.md
+```
+
+The 
 
 5. Root Configuration (terragrunt.hcl)
 File Location
