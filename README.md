@@ -76,11 +76,12 @@ The application is hosted on AWS - hidden behind an application load balancer.
 
 ## Key Features
 * 35% Cost reduction through use of VPC endpoints vs NAT Gateways
-* Enhanced security posture using short-lived OIDC credentials
-* App protected via intelligent routing through Application Load Balancer (ALB)
-* 95% in Docker image size reduction through multi-stage builds
+* 95% Docker image size reduction through multi-stage builds 
+* Privacy-by-design via private subnet applications routing through Application Load Balancer (ALB)
+* Enhanced security posture using short-lived GitHub OIDC credentials
 * Adherence to Don't-Repeat-Yourself (DRY) principle through Terragrunt deployment
 * Secure remote state through S3 native locking
+* Intelligent FinOps strategy via resource tagging for cost management
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
