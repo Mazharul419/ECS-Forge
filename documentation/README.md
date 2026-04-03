@@ -402,11 +402,38 @@ locals {
 }
 ```
 
-This block defines values that I will use [elsewhere in my configuration](https://docs.terragrunt.com/reference/hcl/blocks/#:~:text=The%20locals%20block%20is%20used%20to%20define%20aliases%20for%20Terragrunt%20expressions%20that%20can%20be%20referenced%20elsewhere%20in%20configuration.). These are values are REFERENCED by Terragrunt in almost every single unit that is run.
+This block defines values that will be used [elsewhere in the configuration](https://docs.terragrunt.com/reference/hcl/blocks/#:~:text=The%20locals%20block%20is%20used%20to%20define%20aliases%20for%20Terragrunt%20expressions%20that%20can%20be%20referenced%20elsewhere%20in%20configuration.). These are values are REFERENCED by Terragrunt in almost every single unit that is run.
 
 When they call terraform modules, they POPULATE the empty values set for variables (variables.tf).
 
+The block includes:
 
+`project name` and `aws region` - these are referenced by terraform in ALL modules for resource-level tags
+
+`domain_name` - the apex domain which dev (tm-dev) and prod (tm) environments are based on
+
+`account_id` - the ACTIVE AWS account id at runtime, logged in either via AWS CLI (locally) or within AWS configure-aws-credentials action within CD (Github Actions runner)
+
+`bucket_name` - The name of the S3 bucket - this is a combination of locals from earlier to make it globally unique*
+
+`environment` - This is a dynamic local which outputs the environment of the child terragrunt.hcl calling it - a demo is below:
+
+The `environment = element(split("/", path_relative_to_include()), 1)` has both Terragrunt and HCl functions within which grab the environment based on the directory structure below:
+
+`path_relative_to_include()` [returns the relative path](https://docs.terragrunt.com/reference/hcl/functions/#:~:text=path_relative_to_include()%20returns%20the%20relative%20path%20between%20the%20current%20terragrunt.hcl%20file%20and%20the%20path%20specified%20in%20its%20include%20block) between the child terragrunt.hcl and the parent terragrunt.hcl at root
+
+For example if child is at `live/dev/vpc/terragrunt.hcl` - and since parent is at repo root, this returns `live/dev/vpc`
+
+This is wrapped in `split()` - a HCL function [which produces a list](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/string/split) based on the `/` seperator - returns `["live", "dev", "vpc"]`
+
+The final function `element()` [retrieves a single element from a list](https://developer.hashicorp.com/terraform/language/functions/element) - since the index is zero based, and based on the folder config, the environment is found in index `1` - this returns the string `"dev"`.
+
+
+*IMPROVEMENT 001: 03/04 - Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
+
+A: I do not have to manually append the two locals here
+
+B: IMPORTANTLY means if another account tries to create buckets using this suffix [their request is rejected - preventing bucket takeover attacks!](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/#:~:text=If%20another%20account%20tries%20to%20create%20buckets%20using%20my%20account%E2%80%99s%20suffix%2C%20their%20requests%20will%20be%20automatically%20rejected.)
 
 ### Remote State Block
 
@@ -437,9 +464,19 @@ The `generate` block requests terragrunt to [generate a `backend.tf` in the work
 
 `path = "backend.tf"` provides the path where the backend.tf file is generated - set to the same directory as this file.
 
-`if_exists = "overwrite_terragrunt"` tells Terragrunt to overwrite TERRAGRUNT GENERATED backend.tf file if it already exists. This is not an issue mostly, however this prevents overwriting a human-written backend.tf file if that was created.
+`if_exists = "overwrite_terragrunt"` tells Terragrunt to overwrite the TERRAGRUNT GENERATED backend.tf file if it already exists. This is specificied to prevent overwriting a human-written backend.tf file if that was created.
 
+`config` is a map that configures the state with:
+
+- `bucket` as the local value defined earlier
+- `key` set up such that
+
+
+
+[!NOTE]
 ADR-001: Remote S3 backend
+
+(LOOK INTO REMOTE STATE BOOTSTRAP BEING SORTED BY TERRAGRUNT https://docs.terragrunt.com/features/units/state-backend/)
 
 Generate Provider Block
 
