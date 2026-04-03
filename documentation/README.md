@@ -3,46 +3,60 @@
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
 ## Table of Contents
-
-[Traffic Flow Explained](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#traffic-flow-explained)
-<br>
-&nbsp; [Access to website](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#access-to-website)
-<br>
-&nbsp; [Load Balancer and remaining](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#load-balancer-and-remaining)
-<br><br>
-[Technology Stack Explained](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#technology-stack-explained)
-<br>
-&nbsp; [Infrastructure as Code Tools]()
-<br>
-&nbsp; [Terraform]()
-<br>
-&nbsp; [Terragrunt]()
-<br>
-&nbsp; [AWS Services Used]()
-<br><br>
-[Project Structure]()
-<br>
-[Dockerfile, LICENSE, README.md](https://github.com/Mazharul419/ECS-Forge/edit/main/documentation/README.md#dockerfile-license-readmemd)
-&nbsp;<br>
-[]()
-<br>
-[]()
-
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#traffic-flow-explained">Traffic flow explained</a>
+      <ul>
+        <li><a href="#access-to-website">Access to website</a></li>
+        <li><a href="#load-balancer-and-remaining">Load balancer and remaining</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#technology-stack-explained">Technology stack explained</a>
+      <ul>
+        <li><a href="#infrastructure-as-code-tools">Infrastructure-as-code tools</a></li>
+          <ul>
+          <li><a href="#terraform">Terraform</a></li>
+          <li><a href="#terragrunt">Terragrunt</a></li>
+          <li><a href="#aws-services-used">AWS services used</a></li>
+          </ul>
+      </ul>
+    </li>
+    <li>
+      <a href="#project-structure">Project Structure</a>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+          <ul>
+          <li><a href="#dockerfile,-license,-readme.md,-and-app">Dockerfile, LICENSE, README.md, and App</a></li>
+          <li><a href="#architecture---decisions.md-file-and-documentation---readme.md-file">Architecture - decisions.md file and Documentation - README.md file</a></li>
+          <li><a href="#infrastructure-directory">Infrastructure directory</a>
+            <ul>
+            <li><a href="#backend,-provider.tf-files">Backend, provider.tf files</a></li>
+            <li><a href="#infrastructure---live-directory">Infrastructure - live directory</a></li>
+            <li><a href="#[]">[]</a></li>
+            </ul>
+          </li>
+          </ul>
+      </ul>
+    </li>
+  </ol>
+</details>
 
 # Traffic Flow Explained
 
 ## Access to website
 
-![image](https://capacities-files.s3.eu-central-1.amazonaws.com/private/ce5be6b9-2b98-4142-bb70-1cabd8dc3727/raw.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA5VTNRR6EBR56K2NK%2F20260329%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20260329T093514Z&X-Amz-Expires=43200&X-Amz-Signature=a9b805365e3f128274138b6b9b7d2afe99eb2155becb4f62c5feaff5839c6b7f&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject)
-
+![alt text](image.png)
 
 
 To access the live application in production environment, the user types in ***tm.mazharulislam.dev***(or ***tm-dev.mazharulislam.dev*** if accessing development environment).
 
 A DNS (Domain Name System) query takes place - the client sends out tm.mazharulislam.dev and receives the IP address of the public-facing Application Load Balancer (ALB) allowing it to connect to the application hosted in AWS.
 
-![image](https://capacities-files.s3.eu-central-1.amazonaws.com/private/8756b937-d7ab-48cd-8576-1f2925e75a22/raw.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIA5VTNRR6EBR56K2NK%2F20260329%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20260329T110405Z&X-Amz-Expires=43200&X-Amz-Signature=8a1480f580893048151797a17c7fceb96af6081edf8761e6115bc12be3366c61&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject)
-[image - Notes](https://app.capacities.io/842d982e-dafe-4919-b038-f1da4582566c/8756b937-d7ab-48cd-8576-1f2925e75a22)
+![alt text](image-1.png)
 
 
 Assuming there is no cache stored at any stage - [the following](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) will happen:
@@ -55,9 +69,9 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 
 4. The resolver then makes a request to the TLD server carrying .dev domain which responds with the IP address of the domain’s nameserver mazharulislam.dev
 
-5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/#:~:text=It%E2%80%99s%20worth%20mentioning%20that%20in%20instances%20where%20the%20query%20is%20for%20a%20subdomain%20such%20as%20foo.example.com%20or%20blog.cloudflare.com%2C%20an%20additional%20nameserver%20will%20be%20added%20to%20the%20sequence%20after%20the%20authoritative%20nameserver%2C%20which%20is%20responsible%20for%20storing%20the%20subdomain%E2%80%99s%20CNAME%20record.) which holds the CNAME record
+5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) which holds the CNAME record
 
-6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/#:~:text=CNAME%20records%20%E2%86%97%20map%20a%20domain%20name%20to%20another%20(canonical)%20domain%20name.%20They%20can%20be%20used%20to%20resolve%20other%20record%20types%20present%20on%20the%20target%20domain%20name.) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
+6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
 
 7. The authoritative name server responds to the DNS resolver with the CNAME record which includes the DNS name of the load balancer*
 
@@ -67,14 +81,13 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 
 10. The resolver forwards to amazonaws.com domain where the A record is hosted
 
-11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#w2aab7c21:~:text=The%20Application%20Load%20Balancer%20has%20one%20IP%20address%20per%20enabled,determine%20the%20IP%20addresses%20of%20the%20Application%20Load%20Balancer%20nodes.) is returned to DNS resolver
+11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html) is returned to DNS resolver
 
 12. DNS resolver finally returns the IP address of the ALB, allowing the client to send a HTTP request in order to connect to the code-server application
 
 
 
-*If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://app.capacities.io/842d982e-dafe-4919-b038-f1da4582566c/8e0ae074-62d8-4d95-8335-f011e0c8108e))
-
+*If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
 
 
 # Load Balancer and remaining
@@ -82,9 +95,6 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 Use this section to explain flow from ALB to tasks in private subnet
 
 Also explain how applications can access AWS services privately
-
----
-
 
 
 # Technology Stack Explained
@@ -98,6 +108,8 @@ Also explain how applications can access AWS services privately
 ## AWS Services Used
 
 # Project Structure
+
+## Overview
 
 ```
 .
@@ -202,20 +214,270 @@ Also explain how applications can access AWS services privately
 
 ## Structure Explained
 
-### Dockerfile, LICENSE, README.md
+### Dockerfile, LICENSE, README.md, and App
 
 ```
 ├── Dockerfile
 ├── LICENSE
 ├── README.md
+├── app
 ```
 
-The 
+According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
 
-5. Root Configuration (terragrunt.hcl)
-File Location
-Locals Block
-Remote State Block
+The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
+
+The LICENSE.txt file specifies how the repo can be distributed and used.
+
+The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
+
+### Architecture - decisions.md file and Documentation - README.md file
+
+```
+├── architecture
+│   └── decisions.md
+├── documentation
+│   └── README.md
+```
+
+The decisions.md file in the architecture directory outline the key architectural decisions made in the project. This file communicates IMPACT as opposed to details in the next file.
+
+The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
+
+### Infrastructure directory
+
+```
+└── infrastructure
+    ├── backend.tf
+    ├── bootstrap
+    ├── live
+    ├── modules
+    ├── provider.tf
+    └── terragrunt.hcl
+```
+This directory contains EVERYTHING related to the infrastructure required to deploy the application.
+
+#### Backend, provider.tf files
+```
+└── infrastructure
+    ├── backend.tf
+    .
+    .
+    .
+    ├── provider.tf
+```
+
+Terragrunt automatically generates these files in order to tell terraform where the S3 bucket is stored and which providers to use respectively. They are generated every run and can be safely deleted.
+
+#### Infrastructure - live directory
+
+```
+│   ├── live
+│   │   ├── _env
+│   │   │   └── common.hcl
+│   │   ├── dev
+│   │   │   ├── acm
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── alb
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── dns
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── ecs
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── env.hcl
+│   │   │   ├── security-groups
+│   │   │   │   └── terragrunt.hcl
+│   │   │   ├── vpc
+│   │   │   │   └── terragrunt.hcl
+│   │   │   └── vpc-endpoints
+│   │   │       └── terragrunt.hcl
+│   │   ├── global
+│   │   │   ├── ecr
+│   │   │   │   └── terragrunt.hcl
+│   │   │   └── oidc
+│   │   │       └── terragrunt.hcl
+│   │   └── prod
+│   │       ├── acm
+│   │       │   └── terragrunt.hcl
+│   │       ├── alb
+│   │       │   └── terragrunt.hcl
+│   │       ├── dns
+│   │       │   └── terragrunt.hcl
+│   │       ├── ecs
+│   │       │   └── terragrunt.hcl
+│   │       ├── env.hcl
+│   │       ├── security-groups
+│   │       │   └── terragrunt.hcl
+│   │       ├── vpc
+│   │       │   └── terragrunt.hcl
+│   │       └── vpc-endpoints
+│   │           └── terragrunt.hcl
+```
+
+This directory contains the live Terragrunt configuration of the:
+
+- global infra: Modules that bootstrap the dev and prod environments
+- dev infra: Modules for development enviromnent
+- prod infra: Modules for production environment
+- common.hcl: This a file containing common values between the above directories
+
+These directories contain further directories representing [single instances of infrastructure](https://docs.terragrunt.com/getting-started/terminology#unit) managed by Terragrunt - represented by the presence of terragrunt.hcl files which define the [Terragrunt configuration](https://docs.terragrunt.com/reference/hcl/)
+
+This the HOW and WHERE - which environment, values, and where to store state.
+
+#### Infrastructure - modules directory
+
+```
+│   ├── infrastructure
+    │   .
+    │   .
+    │   .
+    │   ├── modules
+    │   │   ├── acm
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── alb
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── dns
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── ecr
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── ecs
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── oidc
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── security-groups
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   ├── vpc
+    │   │   │   ├── main.tf
+    │   │   │   ├── outputs.tf
+    │   │   │   └── variables.tf
+    │   │   └── vpc-endpoints
+    │   │       ├── main.tf
+    │   │       ├── outputs.tf
+    │   │       └── variables.tf
+```
+
+This contains the reusable terraform modules required for deploying infrastructure. The units call the variables at runtime. This is the WHAT - the actual AWS resources.
+
+# DEEP DIVE
+## Root Configuration (terragrunt.hcl)
+
+### File Location
+
+```
+└── infrastructure
+    ├── backend.tf
+    ├── bootstrap
+    .
+    .
+    .
+    └── terragrunt.hcl
+```
+This file is located within the root of my infrastructure directory (directly inside it - not any further in). This is because it holds configuration common to ALL modules.
+
+### Locals Block
+
+```
+locals {
+  project_name = "ecs-project"
+  aws_region   = "eu-west-2"
+  domain_name  = "mazharulislam.dev"
+  account_id   = get_aws_account_id()
+  bucket_name  = "${local.project_name}-terraform-state-${local.account_id}-${local.aws_region}"
+  environment = element(split("/", path_relative_to_include()), 1)
+}
+```
+
+This block defines values that will be used [elsewhere in the configuration](https://docs.terragrunt.com/reference/hcl/blocks/#:~:text=The%20locals%20block%20is%20used%20to%20define%20aliases%20for%20Terragrunt%20expressions%20that%20can%20be%20referenced%20elsewhere%20in%20configuration.). These are values are REFERENCED by Terragrunt in almost every single unit that is run.
+
+When they call terraform modules, they POPULATE the empty values set for variables (variables.tf).
+
+The block includes:
+
+`project name` and `aws region` - these are referenced by terraform in ALL modules for resource-level tags
+
+`domain_name` - the apex domain which dev (tm-dev) and prod (tm) environments are based on
+
+`account_id` - the ACTIVE AWS account id at runtime, logged in either via AWS CLI (locally) or within AWS configure-aws-credentials action within CD (Github Actions runner)
+
+`bucket_name` - The name of the S3 bucket - this is a combination of locals from earlier to make it globally unique*
+
+`environment` - This is a dynamic local which outputs the environment of the child terragrunt.hcl calling it - a demo is below:
+<br><br>
+>The `environment = element(split("/", path_relative_to_include()), 1)` has both Terragrunt and HCl functions within which grab the environment based on the directory structure below:
+>
+>`path_relative_to_include()` [returns the relative path](https://docs.terragrunt.com/reference/hcl/functions/#:~:text=path_relative_to_include()%20returns%20the%20relative%20path%20between%20the%20current%20terragrunt.hcl%20file%20and%20the%20path%20specified%20in%20its%20include%20block) between the child terragrunt.hcl and the parent terragrunt.hcl at root
+>
+>For example if child is at `live/dev/vpc/terragrunt.hcl` - and since parent is at repo root, this returns `live/dev/vpc`
+>
+>This is wrapped in `split()` - a HCL function [which produces a list](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/string/split) based on the `/` seperator - returns `["live", "dev", "vpc"]`
+>
+>The final function `element()` [retrieves a single element from a list](https://developer.hashicorp.com/terraform/language/functions/element) - since the index is zero based, and based on the folder config, the environment is found in index `1` - this returns the string `"dev"`.
+
+<br>
+
+>*IMPROVEMENT 001: 03/04 - Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
+>
+>A: I do not have to manually append the two locals here>
+>
+>B: IMPORTANTLY means if another account tries to create buckets using this suffix [their request is rejected - preventing bucket takeover attacks!](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/#:~:text=If%20another%20account%20tries%20to%20create%20buckets%20using%20my%20account%E2%80%99s%20suffix%2C%20their%20requests%20will%20be%20automatically%20rejected.)
+
+### Remote State Block
+
+```
+remote_state {
+  backend = "s3"
+  
+  generate = {
+    path      = "backend.tf"
+    if_exists = "overwrite_terragrunt"
+  }
+  
+  config = {
+    bucket       = local.bucket_name
+    key          = "${path_relative_to_include()}/terraform.tfstate"
+    region       = local.aws_region
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+```
+
+This block is used to [configure the remote state configuration](https://docs.terragrunt.com/reference/hcl/blocks/#:~:text=The%20remote_state%20block%20is%20used%20to%20configure%20how%20Terragrunt%20will%20set%20up%20the%20remote%20state%20configuration%20of%20your%20OpenTofu/Terraform%20code.) for terraform.
+
+With `backend = s3` - the backend is defined as Amazon Web Service's (AWS) Simple Storage Solution (S3) - this is highly available cloud storage which provides remote storage for the terraform state. Contrasting to storing locally this is much more reliable since AWS manages this specifically and [provides 99.99% availability](https://docs.aws.amazon.com/AmazonS3/latest/userguide/DataDurability.html) for objects stored in it over a year.
+
+The `generate` block requests terragrunt to [generate a `backend.tf` in the working directory](https://oneuptime.com/blog/post/2026-02-23-how-to-use-the-generate-block-in-terragrunt/view#:~:text=creates%20provider.tf%20in%20the%20working%20directory%20with%20the%20specified%20contents.) with the specified configuration.
+
+`path = "backend.tf"` provides the path where the backend.tf file is generated - set to the same directory as this file.
+
+`if_exists = "overwrite_terragrunt"` tells Terragrunt to overwrite the TERRAGRUNT GENERATED backend.tf file if it already exists. This is specificied to prevent overwriting a human-written backend.tf file if that was created.
+
+`config` is a map that configures the state with:
+
+- `bucket` as the local value defined earlier
+- `key` set up such that
+
+<br>
+
+>ADR-001: Remote S3 backend
+>
+>(LOOK INTO REMOTE STATE BOOTSTRAP BEING SORTED BY TERRAGRUNT https://docs.terragrunt.com/features/units/state-backend/)
+
 Generate Provider Block
 
 
@@ -276,6 +538,7 @@ Task Definition Update
 9. Dockerfile Explained
 Stage 1: Build
 Stage 2: Runtime
+
 10. Bootstrap Script
 The 9 Steps
 Usage
