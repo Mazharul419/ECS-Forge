@@ -29,6 +29,8 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Locals Block](#locals-block)
     - [Remote State Block](#remote-state-block)
     - [Generate Provider Block](#generate-provider-block)
+  - [Terraform Modules](#terraform-modules)
+    - [VPC Module](#vpc-module)
 
 
 # Traffic Flow Explained
@@ -601,15 +603,35 @@ provider "aws" {
 
 The `provider` block [declares and configures](https://developer.hashicorp.com/terraform/language/block/provider?page=providers&page=configuration) the providers that terraform uses.
 
-Here the `region` is specified as the earlier defined locals value - which [defines the region](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers) the aws resources are created in.
+Here the `region` is specified as the earlier defined locals value - which [defines the region](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers) the aws resources are created in when communicating with the API.
 
-The `default_tags` block [provides default tags](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) to all resources within this provider
+> Good Practice:
+> 
+> Even though this is already defined in my `~/.aws/config` - it is better to explicitly define this in the terraform configuration since:
+> 
+> A: It is explicit to anyone viewing the code - and not hidden behind a config file locally
+> 
+> B: It [has the highest precedence in configuration order](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication-and-configuration) - therefore cannot be overriden.
 
-Since terraform uses the same method to authenticate as the AWS Command-Line-Interface (CLI) (Same reference as above) - I use the 
+The `default_tags` block [provides default tags](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) to all resources within this provider.
 
+> In order for terraform to deploy resource to AWS - it needs to [communicate programmatically](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers). It [communicates to the endpoint](https://docs.aws.amazon.com/general/latest/gr/rande.html) of the AWS web service - this is per service per region - in the following format:
+> `protocol://service-code.region-code.amazonaws.com`
+>
+> i.e., `https://dynamodb.us-west-2.amazonaws.com` is the endpoint for the Amazon DynamoDB service in the US West (Oregon) Region
 
-1. Terraform Modules
-6.1 VPC Module
+Since terraform uses the same method to authenticate as the AWS Command-Line-Interface (CLI) (Same reference as above) - I used my already logged in long-term credentials [NOT RECOMMENDED*] to authenticate locally. [Here](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-authentication.html) is documentation showing different ways to authenticate.
+
+Here, IAM user short-term credentials is best, since if they are compromised, there is a limited time they can be used for.
+
+My AWS account with root user created a seperate CLI user account via Identity Access Management (IAM) service with a Administrator Access policy (Full guide [here](https://docs.aws.amazon.com/cli/v1/userguide/cli-authentication-user.html)). This policy allows ALL actions on ALL resources.
+
+>*IMPROVEMENT 002: 07/04: Use short-term IAM credentials to limit blast radius if compromised.
+>
+>*IMPROVEMENT 003: 07/04: Even if using long-term credentials, [ROTATE them regularly](https://aws.amazon.com/blogs/security/how-to-rotate-access-keys-for-iam-users/)
+
+## Terraform Modules
+### VPC Module
 Data Source: Availability Zones
 VPC Resourcs
 Public Subnets
@@ -649,7 +671,7 @@ ECS Service
 Why OIDC Instead of Access Keys?
 
 
-7. Live Environment Configurations
+1. Live Environment Configurations
 Dev Environment (env.hcl)
 Prod Environment (env.hcl)
 Terragrunt Dependencies
