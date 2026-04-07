@@ -599,7 +599,14 @@ provider "aws" {
 }
 ```
 
-A provider block is directly added within
+The `provider` block [declares and configures](https://developer.hashicorp.com/terraform/language/block/provider?page=providers&page=configuration) the providers that terraform uses.
+
+Here the `region` is specified as the earlier defined locals value - which [defines the region](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers) the aws resources are created in.
+
+The `default_tags` block [provides default tags](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) to all resources within this provider
+
+Since terraform uses the same method to authenticate as the AWS Command-Line-Interface (CLI) (Same reference as above) - I use the 
+
 
 1. Terraform Modules
 6.1 VPC Module
