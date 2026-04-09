@@ -1,3 +1,5 @@
+<a id="docs-top"></a>
+
 # Intro
 
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
@@ -31,7 +33,12 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Generate Provider Block](#generate-provider-block)
   - [Terraform Modules](#terraform-modules)
     - [VPC Module](#vpc-module)
+      - [Code](#code)
+      - [Data Source: Availability Zones](#data-source-availability-zones)
+      - [VPC Resource](#vpc-resource)
+      - [Public Subnets](#public-subnets)
 
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 # Traffic Flow Explained
 
@@ -74,9 +81,9 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 12. DNS resolver finally returns the IP address of the ALB, allowing the client to send a HTTP request in order to connect to the code-server application
 
 
-
 *If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
 
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 # Load Balancer and remaining
 
@@ -94,6 +101,8 @@ Also explain how applications can access AWS services privately
 ## Terragrunt
 
 ## AWS Services Used
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 # Project Structure
 
@@ -199,6 +208,7 @@ Also explain how applications can access AWS services privately
     ├── createpolicy.tf
     └── deletepolicy.tf
 ```
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ## Structure Explained
 
@@ -256,6 +266,8 @@ This directory contains EVERYTHING related to the infrastructure required to dep
 ```
 
 Terragrunt automatically generates these files in order to tell terraform where the S3 bucket is stored and which providers to use respectively. They are generated every run and can be safely deleted.
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 #### Infrastructure - live directory
 
@@ -361,6 +373,8 @@ This the HOW and WHERE - which environment, values, and where to store state.
 
 This contains the reusable terraform modules required for deploying infrastructure. The units call the variables at runtime. This is the WHAT - the actual AWS resources.
 
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
 # DEEP DIVE
 ## Root Configuration (terragrunt.hcl)
 
@@ -418,11 +432,13 @@ The block includes:
 
 <br>
 
->*IMPROVEMENT 001: 03/04 - Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
+>*IMPROVEMENT 03/04: Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
 >
 >A: I do not have to manually append the two locals here>
 >
 >B: IMPORTANTLY means if another account tries to create buckets using this suffix [their request is rejected - preventing bucket takeover attacks!](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/)
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ### Remote State Block
 
@@ -464,13 +480,13 @@ The `generate` block requests terragrunt to [generate a `backend.tf` in the work
 
 <br>
 
->ADR-001: Remote S3 backend
+>AD: Remote S3 backend
 >
->ADR-002: S3 Server-side encryption
+>AD: S3 Server-side encryption
 >
->ADR-003: S3 native state-locking
+>AD: S3 native state-locking
 >
->(LOOK INTO REMOTE STATE BOOTSTRAP BEING SORTED BY TERRAGRUNT https://docs.terragrunt.com/features/units/state-backend/)
+>IMPROVEMENT 03/04: Consider using remote state bootstrap offered by Terragrunt https://docs.terragrunt.com/features/units/state-backend/)
 
 ### Generate Provider Block
 
@@ -554,6 +570,8 @@ EOF
 
 This is a "heredoc" style string literal supported by Terraform which [contains multi-lines string literals](https://developer.hashicorp.com/terraform/language/expressions/strings#heredoc-strings) - in this context it allows specifying the generated file content.
 
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
 ```
 terraform {
   required_version = "~> 1.14" # Allows 1.14.0, 1.14.1 etc. but not 1.15 - no major/minor suprises
@@ -590,20 +608,20 @@ Latest versions as of writing:
 provider "aws" {
   region = "${local.aws_region}"
 
-  default_tags {
-    tags = {
-    Project     = "${local.project_name}"
-    Environment = "${local.environment}"
-    ManagedBy   = "Terragrunt"
-    Repository  = "github.com/Mazharul419/ecs_full"
-    }
-  }
+.
+.
+.
+
 }
 ```
 
 The `provider` block [declares and configures](https://developer.hashicorp.com/terraform/language/block/provider?page=providers&page=configuration) the providers that terraform uses.
 
 Here the `region` is specified as the earlier defined locals value - which [defines the region](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers) the aws resources are created in when communicating with the API.
+
+Here I decided to use eu-west-2 (London) - admittedly, the only reason was that it is the closest from me. I am certain there are better reasons for region choice when deploying which I'd like to pick up on.
+
+> IMPROVEMENT 09/04: Have better justification for region selection i.e., is it faster? More secure? etc.
 
 > Good Practice:
 > 
@@ -626,19 +644,244 @@ Here, IAM user short-term credentials is best, since if they are compromised, th
 
 My AWS account with root user created a seperate CLI user account via Identity Access Management (IAM) service with a Administrator Access policy (Full guide [here](https://docs.aws.amazon.com/cli/v1/userguide/cli-authentication-user.html)). This policy allows ALL actions on ALL resources.
 
->*IMPROVEMENT 002: 07/04: Use short-term IAM credentials to limit blast radius if compromised.
+>*IMPROVEMENT: 07/04: Use short-term IAM credentials to limit blast radius if compromised.
 >
->*IMPROVEMENT 003: 07/04: Even if using long-term credentials, [ROTATE them regularly](https://aws.amazon.com/blogs/security/how-to-rotate-access-keys-for-iam-users/)
+>*IMPROVEMENT: 07/04: Even if using long-term credentials, [ROTATE them regularly](https://aws.amazon.com/blogs/security/how-to-rotate-access-keys-for-iam-users/)
+
+```
+  default_tags {
+    tags = {
+    Project     = "${local.project_name}"
+    Environment = "${local.environment}"
+    ManagedBy   = "Terragrunt"
+    Repository  = "github.com/Mazharul419/ecs_full"
+    }
+  }
+```
+Within the provider as a whole - `default_tags` [applies default tags to resources that ARE NOT DIRECTLY MANAGED](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/default_tags) by a Terraform resource.
+
+> AD: Provider-level Resource tagging - this tagging enables clear ownership of resources based on project, environments, tech stack and the github repo associated with this - this in turn betters FinOps by showing clear breakdown of costs and helps identify what resources are associated with this project.
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ## Terraform Modules
 ### VPC Module
-Data Source: Availability Zones
-VPC Resourcs
-Public Subnets
-Private Subnets
+
+This module defines the Virtual Private Cloud (VPC) resource in AWS:
+
+#### Code
+
+```
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true  # Required for VPC endpoints
+  enable_dns_support   = true  # Required for VPC endpoints
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-vpc"
+  }
+}
+
+resource "aws_subnet" "public" {
+  count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidrs[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB
+    tags = {
+        Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+    }
+}
+
+resource "aws_subnet" "private" {
+  count             = length(var.private_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnet_cidrs[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnet_cidrs)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table" "private" {
+  count  = length(var.private_subnet_cidrs)
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnet_cidrs)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
+}
+
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "${var.project_name}-${var.environment}-igw"
+  }
+}
+```
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
+#### Data Source: Availability Zones
+
+```
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+```
+
+This is a `data` block within terraform - it [fetches data about a resource](https://developer.hashicorp.com/terraform/language/block/data) without provisioning infrastructure. 
+
+
+This block [queries the avaibility zones within AWS](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) that can be accessed by the AWS account within the configured region defined in the earlier provider module (the local value - `eu-west-2`).
+
+ The `state = "available"` argument filters these by those that are in an "available" state - the default option is all the states `available`, `information`, `impaired` and `unavailable`
+
+> AD: Dynamic Availability Zone retrieval - terraform code can be implemented with modified region/account, [making the configuration more flexible](https://developer.hashicorp.com/terraform/language/data-sources)!
+>
+> This pattern is present in the terraform tutorial by hashicorp, as it [specifically avoids having to hardcode AZs](https://developer.hashicorp.com/terraform/tutorials/configuration-language/data-sources) within the VPC module.
+
+
+#### VPC Resource
+
+```
+resource "aws_vpc" "main" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true  # Required for VPC endpoints
+  enable_dns_support   = true  # Required for VPC endpoints
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-vpc"
+  }
+}
+```
+
+This is the Virtual Private Cloud (VPC) resource block - it provides a VPC resource.
+
+> A VPC is a [logically isolated virtual network](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) offered by AWS.
+
+`cidr_block` is the Classless Inter-Domain Routing (CIDR) block for the VPC - and is made into a variable (variabilised) since this differs between environments.
+
+> Internet Protocol Version 4 (IPv4) was used to define this block - IPv4 is a set of communication rules that [provides data exchange over the internet](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/)
+> 
+> Improvement: Given the expansion of devices and limited addressing offered by this protocol and the improved features such as [autoconfiguration, improved routing and security,](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/) it is worth considering IPv6 or dual-stack (IPv6 with backwards IPv4 compatibility) for the next project!
+> 
+> At the time of planning, I provided scope for VPC-to-VPC connectivity. This has not materialised as of writing so may be removed. This is interesting to explore however.
+
+Terragrunt injects these values through the enivironment specific configuration `env.hcl` located in the respective directory folder `/dev` `/prod`:
+
+infrastructure/live/dev/env.hcl:
+
+`  vpc_cidr             = "10.0.0.0/16"`
+
+infrastructure/live/prod/env.hcl:
+
+`  vpc_cidr             = "10.1.0.0/16"`
+
+
+`enable_dns_hostnames` and `enable_dns_support` are both set to `true` - this is due to downstream resource known as an interface endpoint [requiring these options](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html#prerequisites-interface-endpoints).
+
+
+```
+  tags = {
+    Name = "${var.project_name}-${var.environment}-vpc"
+  }
+```
+
+As part of the FinOps strategy, individual resource-level tags are provided with project name and environment preceding the resource name.
+
+> AD: Resource-level tagging - this identifies resources when looking at cost explorer - it also had the excellent effect of helping me leftover resources when setting up destroy workflows in Terragrunt and CD.
+
+#### Public Subnets
+```
+resource "aws_subnet" "public" {
+  count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_cidrs[count.index]
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB
+    tags = {
+        Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+    }
+}
+```
+
+This is a resource block that creates 2 public subnets.
+
+`count` i.e., number of subnets to create, provides the length of the variabilised CIDR block of the public subnet.
+
+> `count` is an example of a meta-argument (a class of arguments that [defines how terraform controls and creates infrastructure](https://developer.hashicorp.com/terraform/language/meta-arguments)).
+
+The CIDR blocks are defined in the Terragrunt configuration for `/dev` and `/prod` environments:
+
+infrastructure/live/dev/env.hcl:
+
+`public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]`
+
+infrastructure/live/prod/env.hcl:
+
+`public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]`
+
+I defined 2 CIDRs for each subnet, to make the environments highly available in the event of an AZ outage. Also, a load balancer is used in the project and therefore [requires at least 2 availability zones to function](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#subnets-load-balancer).
+
+> AD: 2 AZs for public subnets - high availability. This is designing for fault isolation too - both of which fall under the [Reliability pillar of the AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_fault_isolation_multiaz_region_system.html).
+
+In Hashicorp Configuration Langauge (HCl) - the CIDRs for both environments are in a data type [known as a list](https://developer.hashicorp.com/terraform/language/expressions/types#lists-tuples).
+
+The `length` function [determines the number of elements](https://developer.hashicorp.com/terraform/language/functions/length) i.e., the number of CIDR blocks, defining the public subnet.
+
+It is reverse thinking here - the env.hcl defines the subnet CIDR, and the module uses this information to create the actual resource!
+
+`vpc_id` - [required](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#vpc_id-1) since the subnet is depends on the VPC resource.
+
+`cidr_block` - defines the CIDR blocks to be allocated to each subnet, variabilised and pulled from the previous environment configuration values the `count.index` argument - which pulls the index, and combined with the square brackets `[]`, pulls the associated subnet CIDR.
+
+`  availability_zone       = data.aws_availability_zones.available.names[count.index]`
+
+This is an argument requiring to specify the availability zones for the public subnet - since these are defined earlier in the data block - it is simply referenced here, with `[count.index]` pulling all the availability zones accessible by the AWS account in the eu-west-2 region in the "available" state.
+
+> This argument may pull multiple AZs, however for the resource as a whole it is limited to 2 due to the earlier variabilised `count` argument, where both environments have two hardcoded subnet CIDRs
+
+`  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB`
+
+This specifies that instances launched in this subnet get [automatically assigned a public IP address](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet.html#map_public_ip_on_launch-1) - which was originally for the Application Load Balancer.
+
+[However, ALB automatically gets assigned public IPv4 addresses from EC2's public IPv4 address pool](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#w2aab7c21) - which remain fully managed by the Application Load Balancer service. It is therefore not needed.
+
 Public Route Table
 Private Route Tables
 Internet Gateway
+
+
 6.2 Security Groups Module
 ALB Security Group
 ECS Security Group
@@ -702,5 +945,5 @@ Usage
 12. Glossary of Terms
 
 
-
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
