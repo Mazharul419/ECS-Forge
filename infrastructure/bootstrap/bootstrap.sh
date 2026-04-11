@@ -5,45 +5,43 @@ set -e
 export AWS_PAGER=""
 export TG_NON_INTERACTIVE=true
 
-# ============================================================
-# COMPLETE BOOTSTRAP SCRIPT
-# Creates: S3 (state) + OIDC + ECR
-# ============================================================
+# COMPLETE BOOTSTRAP SCRIPT - Creates: S3 (state) + OIDC + ECR
+
+# Set env variables
 
 PROJECT_NAME="ecs-project"
 AWS_REGION="eu-west-2"
 INITIAL_TAG="initial"
 
-# Get script directory (for relative paths)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INFRA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_DIR="$(cd "$INFRA_DIR/.." && pwd)"
 
-# ============================================================
-# STEP 1: Checks
-# ============================================================
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+CALLER_ARN=$(aws sts get-caller-identity --query Arn --output text)
 
-echo "STEP 1/5: Checks"
+cd "$REPO_DIR"
 
-# Check AWS CLI
+source .env
+
+# Checks
+
 echo "Checking AWS CLI..."
 if ! command -v aws &> /dev/null; then
   echo "AWS CLI not installed"
   echo "Install: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
   exit 1
 fi
-echo "AWS CLI installed: $(aws --version | cut -d' ' -f1)"
+echo "AWS CLI installed: $(aws --version)"
 
-# Check Terraform
 echo "Checking Terraform..."
 if ! command -v terraform &> /dev/null; then
   echo "Terraform not installed"
   echo "Install: https://developer.hashicorp.com/terraform/downloads"
   exit 1
 fi
-echo "Terraform installed: $(terraform version | head -n1)"
+echo "Terraform installed: $(terraform version)"
 
-# Check Terragrunt
 echo "Checking Terragrunt..."
 if ! command -v terragrunt &> /dev/null; then
   echo "Terragrunt not installed"
@@ -52,7 +50,6 @@ if ! command -v terragrunt &> /dev/null; then
 fi
 echo "Terragrunt installed: $(terragrunt --version)"
 
-# Check Docker
 echo "Checking Docker..."
 if ! command -v docker &> /dev/null; then
   echo "Docker not installed"
@@ -61,12 +58,11 @@ if ! command -v docker &> /dev/null; then
 fi
 if ! docker info &> /dev/null; then
   echo "Docker daemon not running"
-  echo "Start Docker Desktop or run: sudo systemctl start docker"
+  echo "Start Docker Desktop"
   exit 1
 fi
 echo "Docker installed and running"
 
-# Check AWS credentials
 echo "Checking AWS credentials..."
 if ! aws sts get-caller-identity &> /dev/null; then
   echo "AWS credentials not configured or expired"
@@ -74,27 +70,9 @@ if ! aws sts get-caller-identity &> /dev/null; then
   exit 1
 fi
 
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-CALLER_ARN=$(aws sts get-caller-identity --query Arn --output text)
-echo "AWS credentials valid"
-echo "Account ID: $ACCOUNT_ID"
-echo "Identity: $CALLER_ARN"
+echo "All checks passed."
 
-# Set + Check environment variables
-
-echo "Setting environment variables from .env file (if exists)..."
-
-cd "$REPO_DIR"
-
-source .env
-
-
-echo ""
-echo "All pre-flight checks passed!"
-
-# ============================================================
-# STEP 2: Create S3 Bucket for Terraform State
-# ============================================================
+# Create S3 Bucket for Terraform State
 
 echo "STEP 2/5: Creating S3 Bucket for Terraform State"
 
@@ -106,8 +84,6 @@ if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
   echo "S3 bucket already exists, skipping creation"
 else
   echo "Creating S3 bucket..."
-  
-  # Create bucket (different command for us-east-1)
 
   aws s3api create-bucket \
     --bucket "$BUCKET_NAME" \
@@ -153,11 +129,7 @@ else
   echo "S3 bucket created: $BUCKET_NAME"
 fi
 
-# ============================================================
-# STEP 3: Deploy Github Actions OIDC role with Terraform
-# ============================================================
-
-echo "STEP 3/5: Deploying GitHub OIDC Provider and Role"
+echo "Deploying GitHub OIDC Provider and Role"
 
 cd "$INFRA_DIR/live/global/oidc"
 
@@ -178,11 +150,7 @@ fi
 echo "OIDC provider and role created via Terraform"
 echo "Role ARN: $ROLE_ARN"
 
-# ============================================================
-# STEP 4: Create ECR Repo with Terraform
-# ============================================================
-
-echo "STEP 4/5: Deploying ECR Repository with Terraform"
+echo "Deploying ECR Repository with Terraform"
 
 cd "$INFRA_DIR/live/global/ecr"
 
@@ -192,7 +160,6 @@ terragrunt init
 echo "Applying ECR configuration..."
 terragrunt apply --auto-approve
 
-# Get ECR URL from Terraform output
 ECR_URL=$(terragrunt output -raw repository_url 2>/dev/null)
 
 if [ -z "$ECR_URL" ]; then
@@ -204,11 +171,7 @@ fi
 echo "ECR repository created via Terraform"
 echo "ECR URL: $ECR_URL"
 
-# ============================================================
-# STEP 5: Build and Push Initial Docker Image to ECR
-# ============================================================
-
-echo "STEP 5/5: Building and Pushing Initial Docker Image"
+echo "Building and Pushing Initial Docker Image"
 
 echo "Checking for existing Docker image..."
 
@@ -248,16 +211,9 @@ docker push "${ECR_URL}:${INITIAL_TAG}"
 echo "Image pushed: ${ECR_URL}:${INITIAL_TAG}"
 
 fi
-
-# ============================================================
-# SUMMARY
-# ============================================================
-
 echo ""
 echo ""
-echo "============================================================"
 echo "BOOTSTRAP COMPLETE"
-echo "============================================================"
 echo ""
 echo "RESOURCES CREATED:"
 echo ""
