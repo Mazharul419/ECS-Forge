@@ -18,10 +18,10 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "ecs-project"
+      Project     = "ecs-forge"
       Environment = "."
       ManagedBy   = "Terragrunt"
-      Repository  = "github.com/Mazharul419/ecs_full"
+      Repository  = "github.com/Mazharul419/ECS-Forge"
     }
   }
 }

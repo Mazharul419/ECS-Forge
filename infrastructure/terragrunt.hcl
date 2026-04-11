@@ -1,7 +1,7 @@
 ### Contains ALL provider/backend configuration for Terragrunt and Terraform ###
 
 locals {
-  project_name = "ecs-project"
+  project_name = "ecs-forge"
   aws_region   = "eu-west-2"
   domain_name  = "mazharulislam.dev"
   account_id   = get_aws_account_id()
@@ -21,10 +21,16 @@ remote_state {
     bucket       = local.bucket_name
     key          = "${path_relative_to_include()}/terraform.tfstate"
     region       = local.aws_region
-    encrypt      = true
     use_lockfile = true
+    s3_bucket_tags = {
+    Project     = "${local.project_name}"
+    ManagedBy   = "Bootstrap"
+    Purpose     = "TF State Storage"
+    Repository  = "github.com/Mazharul419/ECS-Forge"
+    }
   }
-}
+  }
+
 
 generate "provider" {
   path      = "provider.tf"
@@ -53,7 +59,7 @@ provider "aws" {
     Project     = "${local.project_name}"
     Environment = "${local.environment}"
     ManagedBy   = "Terragrunt"
-    Repository  = "github.com/Mazharul419/ecs_full"
+    Repository  = "github.com/Mazharul419/ECS-Forge"
     }
   }
 }

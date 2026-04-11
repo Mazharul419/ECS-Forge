@@ -37,6 +37,12 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Data Source: Availability Zones](#data-source-availability-zones)
       - [VPC Resource](#vpc-resource)
       - [Public Subnets](#public-subnets)
+  - [Live Environment Configurations](#live-environment-configurations)
+  - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
+  - [Dockerfile Explained](#dockerfile-explained)
+  - [Bootstrap Script](#bootstrap-script)
+  - [Supporting Configuration Files	37](#supporting-configuration-files37)
+  - [Glossary of Terms](#glossary-of-terms)
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
@@ -914,35 +920,34 @@ ECS Service
 Why OIDC Instead of Access Keys?
 
 
-1. Live Environment Configurations
+## Live Environment Configurations
 Dev Environment (env.hcl)
 Prod Environment (env.hcl)
 Terragrunt Dependencies
 
 
-8. CI/CD Pipelines (GitHub Actions)
+## CI/CD Pipelines (GitHub Actions)
 Key CI/CD Sections
 OIDC Permissions
 AWS Authentication
 Task Definition Update
 
 
-9. Dockerfile Explained
+## Dockerfile Explained
 Stage 1: Build
 Stage 2: Runtime
 
-10. Bootstrap Script
+## Bootstrap Script
 The 9 Steps
 Usage
 
 
-11. Supporting Configuration Files	37
+## Supporting Configuration Files	37
 .env.example
 .gitignore Highlights
 .dockerignore
 
-
-12. Glossary of Terms
+## Glossary of Terms
 
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>

@@ -2,7 +2,7 @@
 set -e
 
 # Configuration
-PROJECT_NAME="ecs-project"
+PROJECT_NAME="ecs-forge"
 AWS_REGION="eu-west-2"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REPO_NAME="${PROJECT_NAME}-global-ecr"
@@ -14,14 +14,11 @@ INFRA_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 export TG_NON_INTERACTIVE=true
 export AWS_PAGER=""
 
-# ============================================================
 # CONFIRMATION
-# ============================================================
-
 echo ""
-echo -e "============================================================"
+echo -e ""
 echo -e "  WARNING: DESTRUCTIVE OPERATION"
-echo -e "============================================================"
+echo -e ""
 echo ""
 echo "This will destroy following bootstrap resources:"
 echo "  - ECR repository (and all images)"
@@ -38,9 +35,7 @@ if [ "$CONFIRM" != "destroy" ]; then
   exit 0
 fi
 
-# ============================================================
-# DESTROY IN REVERSE ORDER
-# ============================================================
+# Destroy Boostrap infra
 
 echo "Destroying Bootstrap Infrastructure"
 
@@ -61,10 +56,6 @@ for module in "${DESTROY_ORDER[@]}"; do
     echo "Skipping $module (not found)"
   fi
 done
-
-# ============================================================
-# MANUAL CLEANUP FOR STUBBORN RESOURCES
-# ============================================================
 
 echo "Cleaning Up Stubborn Resources"
 
@@ -94,9 +85,7 @@ if aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --region "$
   echo "ECR deleted"
 fi
 
-# ============================================================
-# DELETE S3 BUCKET
-# ============================================================
+# Delete S3 Bucket
 
 echo "S3 State Bucket"
 
@@ -147,9 +136,8 @@ else
   echo "Skipped S3 bucket deletion (state preserved)"
 fi
 
-# ============================================================
-# CLEANUP LOCAL FILES
-# ============================================================
+
+# Cleanup local files
 
 echo "Cleaning Up Local Files"
 
@@ -164,15 +152,12 @@ find . -type f -name ".terraform.lock.hcl" -delete 2>/dev/null || true
 
 echo "Local files cleaned"
 
-# ============================================================
 # SUMMARY
-# ============================================================
+
 
 echo ""
 echo ""
-echo -e "============================================================"
 echo -e " TEARDOWN COMPLETE"
-echo -e "============================================================"
 echo ""
 echo -e "RESOURCES DESTROYED:"
 echo ""
@@ -185,6 +170,4 @@ else
   echo "S3 state bucket (preserved)"
 fi
 
-echo ""
-echo -e "============================================================"
 echo ""
