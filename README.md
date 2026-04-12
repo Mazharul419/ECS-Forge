@@ -358,7 +358,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the project_license. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -367,7 +367,7 @@ Distributed under the project_license. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - mazharulislam419@gmail.com.com
+Mazharul Islam -  mazharulislam419@gmail.com.com
 
 Project Link: [https://github.com/Mazharul419/ECS-Forge](https://github.com/Mazharul419/ECS-Forge)
 
