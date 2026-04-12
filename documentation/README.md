@@ -47,6 +47,10 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Private Route Table resource block](#private-route-table-resource-block)
       - [Private Route Tables Association resource block](#private-route-tables-association-resource-block)
     - [Security Groups Module](#security-groups-module)
+      - [Resources](#resources-1)
+      - [Inputs](#inputs-1)
+      - [Outputs](#outputs-1)
+      - [Code](#code-1)
       - [ALB Security Group](#alb-security-group)
       - [ECS Security Group](#ecs-security-group)
       - [VPC Endpoints Security Group](#vpc-endpoints-security-group)
@@ -1056,6 +1060,109 @@ Associations are for each of the 2 subnets.
 ### Security Groups Module
 
 This module outlines the security groups required for this project.
+
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_security_group.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group.ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group.vpc_endpoints](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_container_port"></a> [container\_port](#input\_container\_port) | Port the container listens on | `number` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block of the VPC | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_alb_security_group_id"></a> [alb\_security\_group\_id](#output\_alb\_security\_group\_id) | ID of the ALB security group |
+| <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | ID of the ECS security group |
+| <a name="output_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#output\_vpc\_endpoints\_security\_group\_id) | ID of the VPC endpoints security group |
+
+#### Code
+```
+resource "aws_security_group" "alb" {
+  name        = "${var.project_name}-${var.environment}-alb-sg"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # From anywhere
+  }
+
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # From anywhere
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"           # All traffic
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+    tags = {
+    Name = "${var.project_name}-${var.environment}-alb-sg"
+    }
+}
+
+resource "aws_security_group" "ecs" {
+  name   = "${var.project_name}-${var.environment}-ecs-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description     = "From ALB"
+    from_port       = var.container_port
+    to_port         = var.container_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]  # ONLY from ALB!
+  }
+
+    egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+  
+    tags = {
+    Name = "${var.project_name}-${var.environment}-ecs-sg"
+    }
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  name   = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
+  vpc_id = var.vpc_id
+
+  ingress {
+    description = "HTTPS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]  # Only from within VPC (10.0.0.0/16)
+  }
+    tags = {
+    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
+    }
+}
+```
+
+
 
 #### ALB Security Group
 
