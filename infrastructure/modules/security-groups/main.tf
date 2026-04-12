@@ -7,6 +7,24 @@ resource "aws_security_group" "alb" {
   }
 }
 
+resource "aws_security_group" "ecs" {
+  name   = "${var.project_name}-${var.environment}-ecs-sg"
+  vpc_id = var.vpc_id
+
+  tags = {
+  Name = "${var.project_name}-${var.environment}-ecs-sg"
+  }
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  name   = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
+  vpc_id = var.vpc_id
+
+    tags = {
+    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
+    }
+  }
+
 # Avoid cyclical dependencies by defining rules separately
 # https://developer.hashicorp.com/terraform/tutorials/state/troubleshooting-workflow#correct-a-cycle-error
 
@@ -39,50 +57,32 @@ resource "aws_security_group_rule" "alb_egress" {
     security_group_id = aws_security_group.alb.id
   }
 
-
-resource "aws_security_group" "ecs" {
-  name   = "${var.project_name}-${var.environment}-ecs-sg"
-  vpc_id = var.vpc_id
-
-  tags = {
-  Name = "${var.project_name}-${var.environment}-ecs-sg"
-  }
-}
-
 resource "aws_security_group_rule" "ecs_ingress" {
     type            = "ingress"
     description     = "From ALB"
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
-    source_security_group_id = aws_security_group.alb.id  # ONLY from ALB!
+    source_security_group_id = aws_security_group.alb.id  # ONLY from ALB on 8080!
     security_group_id = aws_security_group.ecs.id
   }
 
 resource "aws_security_group_rule" "ecs_egress" {
     type = "egress"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    security_group_id = aws_security_group.ecs.id
-    description = "Allow all outbound traffic"
-  }
-  
-
-
-resource "aws_security_group" "vpc_endpoints" {
-  name   = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-  vpc_id = var.vpc_id
-
-  ingress {
-    description = "HTTPS from VPC"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]  # Only from within VPC (10.0.0.0/16)
+    source_security_group_id = aws_security_group.vpc_endpoints.id # VPC endpoints for ECS must allow port 443
+    security_group_id = aws_security_group.ecs.id
+    description = "Allow all outbound traffic"
   }
-    tags = {
-    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-    }
-}
+
+resource "aws_security_group_rule" "vpc_endpoints_ingress" {
+    type = "ingress"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    source_security_group_id = aws_security_group.ecs.id # VPC endpoints for ECS must allow port 443
+    security_group_id = aws_security_group.vpc_endpoints.id
+    description = "HTTPS from VPC"
+  }
