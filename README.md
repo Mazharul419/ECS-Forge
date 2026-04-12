@@ -27,6 +27,7 @@
     An End-to-End deployment of the code-server application hosted on ECS Fargate
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW KEY ARCHITECTURAL DECISIONS ««« </strong></a>
+    <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong>»»» VIEW IN-DEPTH DOCUMENTATION ««« </strong></a>
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
