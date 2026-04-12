@@ -19,11 +19,11 @@ resource "aws_lb_target_group" "main" {
 
   health_check {
     path                = "/healthz"
-    healthy_threshold   = 2         # number of consecutive successful health checks before considering an unhealthy target healthy
-    unhealthy_threshold = 3         # number of consecutive failed health checks before considering a target unhealthy
-    timeout             = 5         # amount of time, in seconds, during which no response means a failed health check
-    interval            = 30        # approximate amount of time, in seconds, between health checks of an individual target
-    matcher             = "200"     # HTTP status code to use when checking for a successful response from a target
+    healthy_threshold   = 2         # # of successful checks till target healthy
+    unhealthy_threshold = 3         # # of failed checks till target unhealthy
+    timeout             = 5         # # of seconds until no response means failed health check
+    interval            = 30        # # of seconds between health checks
+    matcher             = "200"     # HTTP status code for checking health
   }
 
   tags = {

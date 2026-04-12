@@ -50,10 +50,37 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Resources](#resources-1)
       - [Inputs](#inputs-1)
       - [Outputs](#outputs-1)
-      - [Code](#code-1)
       - [ALB Security Group](#alb-security-group)
       - [ECS Security Group](#ecs-security-group)
       - [VPC Endpoints Security Group](#vpc-endpoints-security-group)
+    - [VPC Endpoints Module](#vpc-endpoints-module)
+      - [Resources](#resources-2)
+      - [Inputs](#inputs-2)
+      - [Outputs](#outputs-2)
+    - [ACM (Certificate) Module](#acm-certificate-module)
+      - [Resources](#resources-3)
+      - [Inputs](#inputs-3)
+      - [Outputs](#outputs-3)
+    - [ALB (Application Load Balancer) Module](#alb-application-load-balancer-module)
+      - [Resources](#resources-4)
+      - [Inputs](#inputs-4)
+      - [Outputs](#outputs-4)
+    - [DNS Module](#dns-module)
+      - [Resources](#resources-5)
+      - [Inputs](#inputs-5)
+      - [Outputs](#outputs-5)
+    - [ECS Module](#ecs-module)
+      - [Resources](#resources-6)
+      - [Inputs](#inputs-6)
+      - [Outputs](#outputs-6)
+    - [ECR Module](#ecr-module)
+      - [Resources](#resources-7)
+      - [Inputs](#inputs-7)
+      - [Outputs](#outputs-7)
+    - [OIDC Module](#oidc-module)
+      - [Resources](#resources-8)
+      - [Inputs](#inputs-8)
+      - [Outputs](#outputs-8)
   - [Live Environment Configurations](#live-environment-configurations)
   - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
   - [Dockerfile Explained](#dockerfile-explained)
@@ -1057,9 +1084,18 @@ Associations are for each of the 2 subnets.
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
+> In the interest of keeping this straightforward - the obvious details will be skipped from here on out.
+
 ### Security Groups Module
 
-This module outlines the security groups required for this project.
+Structure:
+1. What this module does (2-3 sentences)
+2. Architecture context — how it fits into the wider system
+3. Key decisions — only the non-obvious ones
+4. Inputs/outputs — terraform-docs generated
+5. Links — to the source code on GitHub, and to relevant ADRs
+
+This module outlines the security groups required for this project - these act as the firewall for resources, allowing only specified traffic through from fixed IPs, or security groups.
 
 #### Resources
 
@@ -1087,117 +1123,246 @@ This module outlines the security groups required for this project.
 | <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | ID of the ECS security group |
 | <a name="output_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#output\_vpc\_endpoints\_security\_group\_id) | ID of the VPC endpoints security group |
 
-#### Code
-```
-resource "aws_security_group" "alb" {
-  name        = "${var.project_name}-${var.environment}-alb-sg"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # From anywhere
-  }
-
-  ingress {
-    description = "HTTPS"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # From anywhere
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"           # All traffic
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-    tags = {
-    Name = "${var.project_name}-${var.environment}-alb-sg"
-    }
-}
-
-resource "aws_security_group" "ecs" {
-  name   = "${var.project_name}-${var.environment}-ecs-sg"
-  vpc_id = var.vpc_id
-
-  ingress {
-    description     = "From ALB"
-    from_port       = var.container_port
-    to_port         = var.container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]  # ONLY from ALB!
-  }
-
-    egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
-  
-    tags = {
-    Name = "${var.project_name}-${var.environment}-ecs-sg"
-    }
-}
-
-resource "aws_security_group" "vpc_endpoints" {
-  name   = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-  vpc_id = var.vpc_id
-
-  ingress {
-    description = "HTTPS from VPC"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]  # Only from within VPC (10.0.0.0/16)
-  }
-    tags = {
-    Name = "${var.project_name}-${var.environment}-vpc-endpoints-sg"
-    }
-}
-```
-
-
 
 #### ALB Security Group
-
-
 
 #### ECS Security Group
 
 #### VPC Endpoints Security Group
 
+### VPC Endpoints Module
 
-6.3 VPC Endpoints Module
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_vpc_endpoint.ecr_api](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint.ecr_dkr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_endpoint.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region where the VPC endpoints will be created. | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_private_route_table_ids"></a> [private\_route\_table\_ids](#input\_private\_route\_table\_ids) | List of private route table IDs where the s3 gateway endpoint will be added. | `list(string)` | n/a | yes |
+| <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | List of private subnet IDs where interface endpoints will be created. | `list(string)` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#input\_vpc\_endpoints\_security\_group\_id) | The security group ID to associate with the interface VPC endpoints. | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of the VPC where the endpoints will be created. | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_ecr_api_endpoint_id"></a> [ecr\_api\_endpoint\_id](#output\_ecr\_api\_endpoint\_id) | ID of the ECR API interface endpoint |
+| <a name="output_ecr_dkr_endpoint_id"></a> [ecr\_dkr\_endpoint\_id](#output\_ecr\_dkr\_endpoint\_id) | ID of the ECR DKR interface endpoint |
+| <a name="output_logs_endpoint_id"></a> [logs\_endpoint\_id](#output\_logs\_endpoint\_id) | ID of the CloudWatch Logs interface endpoint |
+| <a name="output_s3_endpoint_id"></a> [s3\_endpoint\_id](#output\_s3\_endpoint\_id) | ID of the S3 gateway endpoint |
+
 Cost Comparison: NAT Gateway vs VPC Endpoints
 S3 Gateway Endpoint (FREE)
 ECR API Endpoint
 ECR DKR Endpoint
 CloudWatch Logs Endpoint
-6.4 ACM (Certificate) Module
+
+### ACM (Certificate) Module
+
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_acm_certificate.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate) | resource |
+| [aws_acm_certificate_validation.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation) | resource |
+| [cloudflare_dns_record.cert_validation](https://registry.terraform.io/providers/hashicorp/cloudflare/latest/docs/resources/dns_record) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | Cloudflare Zone ID for DNS validation | `string` | n/a | yes |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Root domain name | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_subdomain"></a> [subdomain](#input\_subdomain) | Subdomain for the certificate | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_certificate_arn"></a> [certificate\_arn](#output\_certificate\_arn) | ARN of the validated certificate |
+| <a name="output_certificate_domain"></a> [certificate\_domain](#output\_certificate\_domain) | Domain name of the certificate |
+| <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the certificate |
+| <a name="output_validation_record_fqdns"></a> [validation\_record\_fqdns](#output\_validation\_record\_fqdns) | FQDNs of the validation records |
+
 Certificate Request
 DNS Validation Record
 Certificate Validation
-6.5 ALB (Application Load Balancer) Module
+
+### ALB (Application Load Balancer) Module
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_lb.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
+| [aws_lb_listener.http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
+| [aws_lb_listener.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
+| [aws_lb_target_group.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_alb_security_group_id"></a> [alb\_security\_group\_id](#input\_alb\_security\_group\_id) | Security group ID for ALB | `string` | n/a | yes |
+| <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | ARN of the ACM certificate | `string` | n/a | yes |
+| <a name="input_container_port"></a> [container\_port](#input\_container\_port) | Port the container listens on | `number` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | IDs of public subnets | `list(string)` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_alb_arn"></a> [alb\_arn](#output\_alb\_arn) | ARN of the ALB |
+| <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the ALB |
+| <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the target group |
+
+
 Load Balancer
 Target Group
 HTTPS Listener
 HTTP Listener (Redirect)
-6.6 DNS Module
-6.7 ECS Module
+
+### DNS Module
+
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [cloudflare_dns_record.app](https://registry.terraform.io/providers/hashicorp/cloudflare/latest/docs/resources/dns_record) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_alb_dns_name"></a> [alb\_dns\_name](#input\_alb\_dns\_name) | DNS name of the ALB | `string` | n/a | yes |
+| <a name="input_cloudflare_zone_id"></a> [cloudflare\_zone\_id](#input\_cloudflare\_zone\_id) | Cloudflare Zone ID | `string` | n/a | yes |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Root domain name | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_subdomain"></a> [subdomain](#input\_subdomain) | Subdomain to create (e.g., tm-dev) | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_app_url"></a> [app\_url](#output\_app\_url) | n/a |
+| <a name="output_fqdn"></a> [fqdn](#output\_fqdn) | Fully qualified domain name |
+| <a name="output_record_id"></a> [record\_id](#output\_record\_id) | Cloudflare record ID |
+
+### ECS Module
+
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_cloudwatch_log_group.ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_ecs_cluster.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster) | resource |
+| [aws_ecs_service.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_task_definition.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_iam_role.ecs_task_execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.ecs_task_execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
+| <a name="input_container_image"></a> [container\_image](#input\_container\_image) | Docker image for the container | `string` | n/a | yes |
+| <a name="input_container_port"></a> [container\_port](#input\_container\_port) | Port the container listens on | `number` | n/a | yes |
+| <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Number of tasks to run | `number` | n/a | yes |
+| <a name="input_ecs_security_group_id"></a> [ecs\_security\_group\_id](#input\_ecs\_security\_group\_id) | Security group ID for ECS | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_private_subnet_ids"></a> [private\_subnet\_ids](#input\_private\_subnet\_ids) | IDs of private subnets | `list(string)` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn) | ARN of the ALB target group | `string` | n/a | yes |
+| <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | CPU units for the task | `string` | n/a | yes |
+| <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | Memory for the task in MB | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | ID of the ECS cluster |
+| <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Name of the ECS cluster |
+| <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the ECS service |
+| <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ARN of the task definition |
+
 ECS Concepts
 Cluster
 CloudWatch Log Group
 Task Execution Role
 Task Definition
 ECS Service
-6.8 ECR Module
-6.9 OIDC Module
+
+### ECR Module
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_ecr_lifecycle_policy.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_lifecycle_policy) | resource |
+| [aws_ecr_repository.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_repository_name"></a> [repository\_name](#input\_repository\_name) | ECR repository name | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_repository_arn"></a> [repository\_arn](#output\_repository\_arn) | ECR repository ARN |
+| <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name) | ECR repository name |
+| <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url) | ECR repository URL |
+
+### OIDC Module
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
+| [aws_iam_role.github_actions](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.github_actions_ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.github_actions_ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.github_actions_terragrunt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_account_id"></a> [account\_id](#input\_account\_id) | AWS account ID | `string` | n/a | yes |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
+| <a name="input_github_org"></a> [github\_org](#input\_github\_org) | GitHub organization or username | `string` | n/a | yes |
+| <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name | `string` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | ARN of the GitHub OIDC provider |
+| <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the GitHub Actions IAM role |
+
 Why OIDC Instead of Access Keys?
 
 

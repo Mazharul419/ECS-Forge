@@ -1,4 +1,4 @@
-# S3 Gateway Endpoint (FREE)
+# S3 Gateway Endpoint
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = var.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
@@ -9,7 +9,7 @@ resource "aws_vpc_endpoint" "s3" {
   }
 }
 
-# ECR API Interface Endpoint (~$7/month per AZ)
+# ECR API Interface Endpoint
 resource "aws_vpc_endpoint" "ecr_api" {
   vpc_id              = var.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.api"
@@ -22,7 +22,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
     }
 }
 
-# ECR DKR Interface Endpoint (~$7/month per AZ)
+# ECR DKR Interface Endpoint
 resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_id              = var.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.ecr.dkr"
@@ -35,7 +35,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   }
 }
 
-# CloudWatch Logs Interface Endpoint (~$7/month per AZ)
+# CloudWatch Logs Interface Endpoint
 resource "aws_vpc_endpoint" "logs" {
   vpc_id              = var.vpc_id
   service_name        = "com.amazonaws.${var.aws_region}.logs"

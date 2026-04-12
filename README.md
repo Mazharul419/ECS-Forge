@@ -321,7 +321,7 @@ Additional screenshots, code examples and demos to be added as per roadmap below
 ## Roadmap
 
 - [ ] Complete documentation for code 
-- [ ] Architectural decisions doc
+- [x] Architectural decisions doc
 - [ ] Add shell environment to Docker image
 - [ ] Add healthcheck to Dockerfile
 - [ ] + Many more
