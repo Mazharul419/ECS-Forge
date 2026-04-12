@@ -37,11 +37,19 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Inputs](#inputs)
       - [Outputs](#outputs)
       - [Code](#code)
-      - [Data Source: Availability Zones](#data-source-availability-zones)
-      - [VPC Resource Block](#vpc-resource-block)
-      - [Public Subnets/Route Table/Associations Resource Blocks](#public-subnetsroute-tableassociations-resource-blocks)
-      - [Private Subnets/Route Table/Associations Resource Blocks](#private-subnetsroute-tableassociations-resource-blocks)
-      - [Public Route Table](#public-route-table)
+      - [aws\_availability\_zones data block](#aws_availability_zones-data-block)
+      - [VPC resource block](#vpc-resource-block)
+      - [Public Subnet resource block](#public-subnet-resource-block)
+      - [Internet Gateway resource block](#internet-gateway-resource-block)
+      - [Public Route Table resource block](#public-route-table-resource-block)
+      - [Public Route Table Association resource block](#public-route-table-association-resource-block)
+      - [Private Subnets resource block](#private-subnets-resource-block)
+      - [Private Route Table resource block](#private-route-table-resource-block)
+      - [Private Route Tables Association resource block](#private-route-tables-association-resource-block)
+    - [Security Groups Module](#security-groups-module)
+      - [ALB Security Group](#alb-security-group)
+      - [ECS Security Group](#ecs-security-group)
+      - [VPC Endpoints Security Group](#vpc-endpoints-security-group)
   - [Live Environment Configurations](#live-environment-configurations)
   - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
   - [Dockerfile Explained](#dockerfile-explained)
@@ -747,14 +755,10 @@ resource "aws_subnet" "public" {
     }
 }
 
-resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
   tags = {
-    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
+    Name = "${var.project_name}-${var.environment}-igw"
   }
 }
 
@@ -777,6 +781,17 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
+resource "aws_subnet" "private" {
+  count             = length(var.private_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnet_cidrs[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
+  }
+}
+
 resource "aws_route_table" "private" {
   count  = length(var.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
@@ -791,17 +806,10 @@ resource "aws_route_table_association" "private" {
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
 ```
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-#### Data Source: Availability Zones
+#### aws_availability_zones data block
 
 ```
 data "aws_availability_zones" "available" {
@@ -822,7 +830,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
 
 
-#### VPC Resource Block
+#### VPC resource block
 
 ```
 resource "aws_vpc" "main" {
@@ -872,7 +880,7 @@ As part of the FinOps strategy, individual resource-level tags are provided with
 
 > AD: Resource-level tagging - this identifies resources when looking at cost explorer - it also had the excellent effect of helping me leftover resources when setting up destroy workflows in Terragrunt and CD.
 
-#### Public Subnets/Route Table/Associations Resource Blocks
+#### Public Subnet resource block
 ```
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
@@ -936,7 +944,64 @@ This specifies that instances launched in this subnet get [automatically assigne
 
 The tagging follows the convention of project name, environment, resource name - however to specify which subnet the `count.index` argument is used, with + 1 added to identify it i.e., subnet 1, and subnet 2.
 
-#### Private Subnets/Route Table/Associations Resource Blocks
+> For the public subnet (and any resources within) to connect to the internet - 3 things are required:
+>- An Internet Gateway present in it's VPC
+>- A route table attached to the VPC, with all destination IPs targeting the Internet Gateway
+>- A route table association connecting the subnet to the route table
+>
+> These are explained below:
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
+#### Internet Gateway resource block
+```
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+    Name = "${var.project_name}-${var.environment}-igw"
+  }
+}
+```
+
+This block attaches an Internet Gateway to the VPC.
+
+#### Public Route Table resource block
+
+```
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-public-rt"
+  }
+}
+```
+This resource block creates the public route table which [defines how traffic is routed within the VPC](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html).
+
+The `cidr_block` is the destination range of IP addresses where I want traffic to go - by specifying `0.0.0.0/0` this means ALL IP addresses.
+
+The `gateway_id` is the gateway where through destination traffic is sent - here it is the internet gateway.
+
+#### Public Route Table Association resource block
+
+The above route table is attached to the public subnet using:
+```
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnet_cidrs)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+```
+For `count` since there are 2 public subnets, they are attached to each - resulting in 2 associations.
+
+The `subnet_id` and `route_table_id` must be specified for these to be attached.
+
+#### Private Subnets resource block
 
 ```
 resource "aws_subnet" "private" {
@@ -961,49 +1026,46 @@ infrastructure/live/prod/env.hcl:
 
 `  private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]`
 
-#### Public Route Table
+#### Private Route Table resource block
 ```
-resource "aws_route_table" "public" {
+resource "aws_route_table" "private" {
+  count  = length(var.private_subnet_cidrs)
   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-
   tags = {
-    Name = "${var.project_name}-${var.environment}-public-rt"
+    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
   }
 }
 ```
-This resource block creates the public route table which [defines how traffic is routed within the VPC](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html).
 
-The `cidr_block` is the destination range of IP addresses where I want traffic to go - by specifying `0.0.0.0/0` this means ALL IP addresses.
+This has no access to the internet, since it is private by design - therefore there is no target associated with this.
 
-The `gateway_id` is the gateway where through destination traffic is sent - here it is the internet gateway.
-
-This is attached to the public subnet using:
+#### Private Route Tables Association resource block
 ```
-resource "aws_route_table_association" "public" {
-  count          = length(var.public_subnet_cidrs)
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnet_cidrs)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index].id
 }
 ```
-For `count` since there are 2 public subnets, they are attached to each - resulting in 2 associations.
 
-The `subnet_id` and `route_table_id` must be specified for these to be attached.
+Associations are for each of the 2 subnets.
+
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
+### Security Groups Module
+
+This module outlines the security groups required for this project.
+
+#### ALB Security Group
 
 
 
-Private Route Tables
-Internet Gateway
+#### ECS Security Group
+
+#### VPC Endpoints Security Group
 
 
-6.2 Security Groups Module
-ALB Security Group
-ECS Security Group
-VPC Endpoints Security Group
 6.3 VPC Endpoints Module
 Cost Comparison: NAT Gateway vs VPC Endpoints
 S3 Gateway Endpoint (FREE)
