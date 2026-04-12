@@ -26,6 +26,7 @@
   <p align="center">
     An End-to-End deployment of the code-server application hosted on ECS Fargate
     <br />
+    <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW KEY ARCHITECTURAL DECISIONS ««« </strong></a>
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong>»»» VIEW IN-DEPTH DOCUMENTATION ««« </strong></a>
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
@@ -82,6 +83,8 @@ The application is hosted on AWS - hidden behind an application load balancer.
 * Adherence to Don't-Repeat-Yourself (DRY) principle through Terragrunt deployment
 * Secure remote state through S3 native locking
 * Intelligent FinOps strategy via resource tagging for cost management
+
+<a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW THE KEY ARCHITECTURAL DECISIONS HERE ««« </strong></a>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
