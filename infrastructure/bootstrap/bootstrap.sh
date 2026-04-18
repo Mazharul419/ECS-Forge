@@ -5,6 +5,8 @@ set -e
 
 # Set env variables
 
+echo "Setting environment variables..."
+
 export AWS_PAGER=""
 export TG_NON_INTERACTIVE=true
 
