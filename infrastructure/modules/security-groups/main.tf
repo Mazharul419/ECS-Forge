@@ -25,11 +25,15 @@ resource "aws_security_group" "vpc_endpoints" {
     }
   }
 
+data "aws_prefix_list" "s3" {
+  name = "com.amazonaws.${var.aws_region}.s3"
+}
+
 # Avoid cyclical dependencies by defining rules separately
 # https://developer.hashicorp.com/terraform/tutorials/state/troubleshooting-workflow#correct-a-cycle-error
 
 resource "aws_security_group_rule" "alb_ingress_http" {
-      type        = "ingress"
+    type        = "ingress"
     description = "HTTP"
     from_port   = 80
     to_port     = 80
@@ -82,7 +86,20 @@ resource "aws_security_group_rule" "vpc_endpoints_ingress" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    source_security_group_id = aws_security_group.ecs.id # VPC endpoints for ECS must allow port 443
+    source_security_group_id = aws_security_group.ecs.id
     security_group_id = aws_security_group.vpc_endpoints.id
     description = "HTTPS from VPC"
   }
+
+# For locking down access - S3 gateway endpoint needs to be specified too or ContainerPullError - access via prefix list:
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule#usage-with-prefix-list-ids
+
+resource "aws_security_group_rule" "s3_gateway_egress" {
+  type              = "egress"  
+  from_port         = 443
+  to_port           = 443  
+  protocol          = "tcp"
+  prefix_list_ids   = [data.aws_prefix_list.s3.id]
+  security_group_id = aws_security_group.ecs.id  
+  description       = "ECS S3 Gateway Egress"
+}
