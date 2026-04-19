@@ -57,13 +57,15 @@ resource "aws_ecs_task_definition" "main" {
       protocol      = "tcp"
     }]
 
-    healthCheck = {
-      command     = ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
-      interval    = 30
-      timeout     = 5
-      retries     = 3
-      startPeriod = 10
-    }
+# Not working due to lack of shell environment - add once fixed
+
+    # healthCheck = {
+    #   command     = ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+    #   interval    = 30
+    #   timeout     = 5
+    #   retries     = 3
+    #   startPeriod = 10
+    # }
 
     logConfiguration = {
       logDriver = "awslogs"
@@ -74,6 +76,12 @@ resource "aws_ecs_task_definition" "main" {
       }
     }
   }])
+
+  lifecycle {
+    ignore_changes = [
+      container_definitions
+    ]
+  }
 
   tags = {
     Name = "${var.project_name}-${var.environment}-task=definition"
@@ -97,6 +105,12 @@ resource "aws_ecs_service" "main" {
     target_group_arn = var.target_group_arn
     container_name   = "${var.project_name}-${var.environment}-container"
     container_port   = var.container_port
+  }
+
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
   }
 
   tags = {
