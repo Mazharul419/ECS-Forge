@@ -3,8 +3,6 @@ name: CI - Build and Scan Docker image
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   AWS_REGION: eu-west-2
