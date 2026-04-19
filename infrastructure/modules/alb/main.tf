@@ -18,7 +18,10 @@ resource "aws_lb_target_group" "main" {
   target_type = "ip"
 
   health_check {
+    enabled             = true
     path                = "/healthz"
+    port                = var.container_port
+    protocol            = "HTTP"
     healthy_threshold   = 2         # # of successful checks till target healthy
     unhealthy_threshold = 3         # # of failed checks till target unhealthy
     timeout             = 5         # # of seconds until no response means failed health check
