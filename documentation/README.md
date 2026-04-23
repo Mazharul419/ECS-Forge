@@ -1107,7 +1107,11 @@ The ingress of a downstream resource references the security group of the upstre
 
 When they are defined as part of the security group at creation terraform cannot resolve the circular dependency and therefore fails to create the resources.
 
-The solution was to create blank security groups first and then add in the rules after.
+The solution was to [create blank security groups first and then add in the rules after.](https://developer.hashicorp.com/terraform/tutorials/state/troubleshooting-workflow#correct-a-cycle-error)
+
+When adding in the rules, the blank security groups must be referenced using `security_group_id` field and chaining is done via `[source_security_group_id]` field.
+
+For the S3 gateway endpoint, a seperate security group rule must be defined that targets the prefix list. A data block was defined earlier to import this - and referenced here.
 
 [Source code](https://github.com/Mazharul419/ECS-Forge/tree/main/infrastructure/modules/security-groups/main.tf)  
 
