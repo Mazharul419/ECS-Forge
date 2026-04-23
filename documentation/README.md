@@ -1095,7 +1095,21 @@ Structure:
 4. Inputs/outputs — terraform-docs generated
 5. Links — to the source code on GitHub, and to relevant ADRs
 
-This module outlines the security groups required for this project - these act as the firewall for resources, allowing only specified traffic through from fixed IPs, or security groups.
+This module outlines the security groups required for this project - these act as the firewall for resources, [controlling the traffic allowed to reach and leave the resources it is associated with](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html).
+
+One key decision here was to provide minimal permissions required for each relevant resource to talk to the next in the traffic flow. This minimises exposure and vulnerability of the infrastructure - improving security posture.
+
+One issue I resolved however was circular dependecies when assigning minimal IAM permission:
+
+The egress of one resource references the security group of the downstream resource.
+
+The ingress of a downstream resource references the security group of the upstream resource.
+
+When they are defined as part of the security group at creation terraform cannot resolve the circular dependency and therefore fails to create the resources.
+
+The solution was to create blank security groups first and then add in the rules after.
+
+[Source code](https://github.com/Mazharul419/ECS-Forge/tree/main/infrastructure/modules/security-groups/main.tf)  
 
 #### Resources
 
@@ -1123,14 +1137,37 @@ This module outlines the security groups required for this project - these act a
 | <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | ID of the ECS security group |
 | <a name="output_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#output\_vpc\_endpoints\_security\_group\_id) | ID of the VPC endpoints security group |
 
-
-#### ALB Security Group
-
-#### ECS Security Group
-
-#### VPC Endpoints Security Group
-
 ### VPC Endpoints Module
+
+This resource provides the private connectivity required for the application to reach various AWS services.
+
+It allows the following services:
+
+ecr.dkr - Authenticates to Docker registry and performs the actual image pull command docker pull
+
+ecr.api - Authenticates to ECR and stores image metadata
+
+ecr.s3 - stores the actual images layers, once both the above are complete, these layers of the Dockerfile are grabbed from S3
+
+.logs - cloudwatch logs for centralised logging of container activity, consists of several streams combined into one log group
+
+One key decision was choosing this resource instead of a NAT gateway. There are various reasons for this - the biggest one being it keeps your traffic private. The various services are connected privately, via AWS PrivateLink meaning traffic does not leave out the AWS Network and instead gets routed within the AWS backbone.
+
+Another reason is because it turns out cheaper - at:
+
+$48.18 per month - 6x $8.03 per month per AZ (x2) per service(x3) 
+
+versus 
+
+$73 per month for NAT gateway - 2x $36.5 per month per AZ (2x)
+
+
+It is 34% cheaper.
+
+
+This also has the effect of having faster resource communication since there are less hops and the journey from application to service and vice-versa is more direct.
+
+[Source Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc-endpoints/main.tf)
 
 #### Resources
 
@@ -1162,13 +1199,9 @@ This module outlines the security groups required for this project - these act a
 | <a name="output_logs_endpoint_id"></a> [logs\_endpoint\_id](#output\_logs\_endpoint\_id) | ID of the CloudWatch Logs interface endpoint |
 | <a name="output_s3_endpoint_id"></a> [s3\_endpoint\_id](#output\_s3\_endpoint\_id) | ID of the S3 gateway endpoint |
 
-Cost Comparison: NAT Gateway vs VPC Endpoints
-S3 Gateway Endpoint (FREE)
-ECR API Endpoint
-ECR DKR Endpoint
-CloudWatch Logs Endpoint
-
 ### ACM (Certificate) Module
+
+This module is for provisioning the ACM certificate required for end-to-end TLS.
 
 #### Resources
 
