@@ -19,7 +19,7 @@ variable "domain_name" {
 }
 
 variable "subdomain" {
-  description = "Subdomain to create (e.g., tm-dev)"
+  description = "Subdomain to create (e.g., dev)"
   type        = string
 }
 

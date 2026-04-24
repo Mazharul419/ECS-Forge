@@ -1,6 +1,6 @@
 locals {
   environment   = "prod"
-  subdomain     = "tm"
+  subdomain     = "prod"
   desired_count = 2          # Two tasks (redundancy)
 
   # Network (different CIDR)

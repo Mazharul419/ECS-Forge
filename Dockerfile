@@ -16,14 +16,14 @@ RUN git submodule update --init
 RUN quilt push -a
 RUN npm install
 RUN npm run build
-RUN VERSION=4.107.0 npm run build:vscode
+RUN VERSION=4.112.0 npm run build:vscode
 RUN KEEP_MODULES=1 npm run release
 RUN npm run release:standalone
 RUN adduser nonroot && chown nonroot:nonroot ./
 
 # Stage 2: Run Build stage
 
-FROM gcr.io/distroless/base-debian12
+FROM ubuntu:24.04
 WORKDIR /app
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /lib/x86_64-linux-gnu/
 COPY --from=builder /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/

@@ -1,6 +1,6 @@
 locals {
   environment   = "dev"
-  subdomain     = "tm-dev"
+  subdomain     = "dev"
   desired_count = 1          # Single task (save money)
 
   # Network
