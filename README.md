@@ -21,11 +21,14 @@
 
 <h3 align="center">ECS-Forge</h3>
 
-<img src="https://github.com/user-attachments/assets/1dfdb3d9-8b23-407f-9f94-336233fdf405">
+<img width="659" height="500" alt="ECS Diagram Detailed - 25 04-Diagram Simple 25 04 drawio" src="https://github.com/user-attachments/assets/30668245-da08-4c69-abad-9aa6b48b6806" />
+
+
 
   <p align="center">
     An End-to-End deployment of the code-server application hosted on ECS Fargate
     <br />
+    <br>
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW KEY ARCHITECTURAL DECISIONS ««« </strong></a>
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong>»»» VIEW IN-DEPTH DOCUMENTATION ««« </strong></a>
