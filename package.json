@@ -1,0 +1,55 @@
+{
+  "name": "code-server",
+  "license": "MIT",
+  "version": "0.0.0",
+  "description": "Run VS Code on a remote server.",
+  "homepage": "https://github.com/coder/code-server",
+  "bugs": {
+    "url": "https://github.com/coder/code-server/issues"
+  },
+  "repository": "https://github.com/coder/code-server",
+  "main": "out/node/entry.js",
+  "dependencies": {
+    "@coder/logger": "^3.0.1",
+    "argon2": "^0.44.0",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "env-paths": "^2.2.1",
+    "express": "^5.0.1",
+    "http-proxy": "^1.18.1",
+    "httpolyglot": "^0.1.2",
+    "i18next": "^25.8.3",
+    "js-yaml": "^4.1.0",
+    "limiter": "^2.1.0",
+    "pem": "^1.14.8",
+    "proxy-agent": "^6.3.1",
+    "qs": "^6.15.0",
+    "rotating-file-stream": "^3.1.1",
+    "safe-compare": "^1.1.4",
+    "semver": "^7.5.4",
+    "ws": "^8.14.2",
+    "xdg-basedir": "^4.0.0"
+  },
+  "resolutions": {
+    "@types/node": "22.x"
+  },
+  "bin": {
+    "code-server": "out/node/entry.js"
+  },
+  "keywords": [
+    "vscode",
+    "development",
+    "ide",
+    "coder",
+    "vscode-remote",
+    "browser-ide",
+    "remote-development"
+  ],
+  "engines": {
+    "node": "22"
+  },
+  "commit": "d7599ae360900ad55b503e3c840b417a1eae4798",
+  "scripts": {
+    "postinstall": "sh ./postinstall.sh"
+  }
+}

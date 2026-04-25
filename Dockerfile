@@ -1,8 +1,7 @@
 # Stage 1: Build stage
 
-FROM node:22.22-bookworm AS builder
+FROM node:22.22-bookworm@sha256:9059d9d7db987b86299e052ff6630cd95e5a770336967c21110e53289a877433 AS builder
 WORKDIR /usr/src/
-RUN npm install -g npm@11.6.2
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential g++ python-is-python3 \
     libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev \
@@ -19,16 +18,17 @@ RUN npm run build
 RUN VERSION=4.112.0 npm run build:vscode
 RUN KEEP_MODULES=1 npm run release
 RUN npm run release:standalone
-RUN adduser nonroot && chown nonroot:nonroot ./
 
 # Stage 2: Run Build stage
 
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:c4a8d5503dfb2a3eb8ab5f807da5bc69a85730fb49b5cfca2330194ebcc41c7b
 WORKDIR /app
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /lib/x86_64-linux-gnu/
-COPY --from=builder /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/
-COPY --from=builder /usr/src/code-server/release-standalone/ ./ 
-USER nonroot
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN useradd -m coder
+COPY --from=builder --chown=coder:coder /usr/src/code-server/release-standalone/ ./
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
+USER coder
 EXPOSE 8080
 
 ENTRYPOINT ["/app/lib/node", "out/node/entry.js"]
