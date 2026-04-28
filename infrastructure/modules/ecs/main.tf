@@ -57,15 +57,13 @@ resource "aws_ecs_task_definition" "main" {
       protocol      = "tcp"
     }]
 
-# Not working due to lack of shell environment - add once fixed
-
-    # healthCheck = {
-    #   command     = ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
-    #   interval    = 30
-    #   timeout     = 5
-    #   retries     = 3
-    #   startPeriod = 10
-    # }
+    healthCheck = {
+      command     = ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval    = 30
+      timeout     = 5
+      retries     = 3
+      startPeriod = 10
+    }
 
     logConfiguration = {
       logDriver = "awslogs"
