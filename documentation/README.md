@@ -50,14 +50,11 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Resources](#resources-1)
       - [Inputs](#inputs-1)
       - [Outputs](#outputs-1)
-      - [ALB Security Group](#alb-security-group)
-      - [ECS Security Group](#ecs-security-group)
-      - [VPC Endpoints Security Group](#vpc-endpoints-security-group)
     - [VPC Endpoints Module](#vpc-endpoints-module)
       - [Resources](#resources-2)
       - [Inputs](#inputs-2)
       - [Outputs](#outputs-2)
-    - [ACM (Certificate) Module](#acm-certificate-module)
+    - [AWS Certificate Manager (ACM) Module](#aws-certificate-manager-acm-module)
       - [Resources](#resources-3)
       - [Inputs](#inputs-3)
       - [Outputs](#outputs-3)
@@ -1203,9 +1200,65 @@ This also has the effect of having faster resource communication since there are
 | <a name="output_logs_endpoint_id"></a> [logs\_endpoint\_id](#output\_logs\_endpoint\_id) | ID of the CloudWatch Logs interface endpoint |
 | <a name="output_s3_endpoint_id"></a> [s3\_endpoint\_id](#output\_s3\_endpoint\_id) | ID of the S3 gateway endpoint |
 
-### ACM (Certificate) Module
+### AWS Certificate Manager (ACM) Module
 
 This module is for provisioning the ACM certificate required for end-to-end TLS.
+
+An ACM certificate is first requested from AWS Certificate Manager via DNS:
+
+```
+resource "aws_acm_certificate" "main" {
+  domain_name       = "${var.subdomain}.${var.domain_name}"
+  validation_method = "DNS"
+
+  tags = {
+    Name        = "${var.project_name}-${var.environment}-acm-cert"
+  }
+}
+```
+
+ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
+
+
+In Cloudflare, the CNAME record is added:
+
+```
+resource "cloudflare_dns_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
+    }
+  }
+.
+.
+}
+```
+
+The `for_each` is a meta-argument that manages each domain validation option (dvo) AWS returns, and is the pattern even with one block.
+
+ACM returns domain validation options, which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1) - which look like this:
+
+```
+[
+  {
+    domain_name          = "tm.mazharulislam.dev"
+    resource_record_name = "_abc123.tm.mazharulislam.dev."
+    resource_record_type = "CNAME"
+    resource_record_value = "_xyz789.acm-validations.aws."
+  }
+]
+```
+
+The `for` expression transforms the set (unordered, unique version of a list) into a map (key value pairs list).
+
+This is done by iterating over each element (which is an object), and transforming the set contained within into a map - with the key defined as the domain name (first field) and remaining values in the object, being the new values.
+
+, and therefore the specific domain validation option for the `dev.mazharulislam.dev`.
+
+
+The ACM validation waiter polls ACM until it sees the record.
 
 #### Resources
 
