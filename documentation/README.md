@@ -1217,8 +1217,20 @@ resource "aws_acm_certificate" "main" {
 }
 ```
 
-ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
+ACM returns domain validation options, which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1) - which look like this:
 
+```
+[
+  {
+    domain_name          = "tm.mazharulislam.dev"
+    resource_record_name = "_abc123.tm.mazharulislam.dev."
+    resource_record_type = "CNAME"
+    resource_record_value = "_xyz789.acm-validations.aws."
+  }
+]
+```
+
+ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
 
 In Cloudflare, the CNAME record is added:
 
@@ -1238,27 +1250,33 @@ resource "cloudflare_dns_record" "cert_validation" {
 
 The `for_each` is a meta-argument that manages each domain validation option (dvo) AWS returns, and is the pattern even with one block.
 
-ACM returns domain validation options, which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1) - which look like this:
-
-```
-[
-  {
-    domain_name          = "tm.mazharulislam.dev"
-    resource_record_name = "_abc123.tm.mazharulislam.dev."
-    resource_record_type = "CNAME"
-    resource_record_value = "_xyz789.acm-validations.aws."
-  }
-]
-```
-
 The `for` expression transforms the set (unordered, unique version of a list) into a map (key value pairs list).
 
 This is done by iterating over each element (which is an object), and transforming the set contained within into a map - with the key defined as the domain name (first field) and remaining values in the object, being the new values.
 
-, and therefore the specific domain validation option for the `dev.mazharulislam.dev`.
+Cloudflare then adds these values to its dns records for the domain it belongs to:
+
+```
+resource "cloudflare_dns_record" "cert_validation" {
+  .
+  .
+  .
+  zone_id = var.cloudflare_zone_id
+  name    = trimsuffix(each.value.name, ".${var.domain_name}.")
+  type    = each.value.type
+  content = trimsuffix(each.value.value, ".")
+  ttl     = 300
+  proxied = false
+
+  comment = "ACM validation for ${var.project_name}-${var.environment}"
+}
+
+```
+
+The ACM validation waiter polls ACM until it sees the record:
 
 
-The ACM validation waiter polls ACM until it sees the record.
+
 
 #### Resources
 
