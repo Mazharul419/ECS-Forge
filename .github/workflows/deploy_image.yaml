@@ -21,7 +21,8 @@ on:
 
 env:
   AWS_REGION: eu-west-2
-  ECR_REPOSITORY: ecs-project-global-ecr
+  PROJECT_NAME: ecs-forge
+  ECR_REPOSITORY: ecs-forge-global-ecr
 
 permissions:
   id-token: write
@@ -66,17 +67,11 @@ jobs:
       - name: Set environment variables
         id: env-vars
         run: |
-          if [ "${{ inputs.environment }}" == "prod" ]; then
-            echo "cluster=ecs-project-prod-cluster" >> $GITHUB_OUTPUT
-            echo "service=ecs-project-prod-ecs-service" >> $GITHUB_OUTPUT
-            echo "task=ecs-project-prod-task" >> $GITHUB_OUTPUT
-            echo "url=https://tm.mazharulislam.dev" >> $GITHUB_OUTPUT
-          else
-            echo "cluster=ecs-project-dev-cluster" >> $GITHUB_OUTPUT
-            echo "service=ecs-project-dev-ecs-service" >> $GITHUB_OUTPUT
-            echo "task=ecs-project-dev-task" >> $GITHUB_OUTPUT
-            echo "url=https://tm-dev.mazharulislam.dev" >> $GITHUB_OUTPUT
-          fi
+          echo "cluster=ecs-forge-${{ inputs.environment }}-cluster" >> $GITHUB_OUTPUT
+          echo "service=ecs-forge-${{ inputs.environment }}-ecs-service" >> $GITHUB_OUTPUT
+          echo "task=ecs-forge-${{ inputs.environment }}-task" >> $GITHUB_OUTPUT
+          echo "url=https://${{ inputs.environment }}.mazharulislam.dev" >> $GITHUB_OUTPUT
+
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
