@@ -1248,9 +1248,9 @@ resource "cloudflare_dns_record" "cert_validation" {
 }
 ```
 
-The `for_each` is a meta-argument that manages each domain validation option (dvo) AWS returns, and is the pattern even with one block.
+The `for_each` is a meta-argument that manages each domain validation option (dvo) objects AWS returns, and is the pattern even with one object.
 
-The `for` expression transforms the set (unordered, unique version of a list) into a map (key value pairs list).
+The `for` expression transforms the set from an object (the unordered, unique version of a list from earlier) into a map (key value pairs list).
 
 This is done by iterating over each element (which is an object), and transforming the set contained within into a map - with the key defined as the domain name (first field) and remaining values in the object, being the new values.
 
@@ -1275,8 +1275,18 @@ resource "cloudflare_dns_record" "cert_validation" {
 
 The ACM validation waiter polls ACM until it sees the record:
 
+```
+resource "aws_acm_certificate_validation" "main" {
+  certificate_arn         = aws_acm_certificate.main.arn
+  validation_record_fqdns = [for dvo in aws_acm_certificate.main.domain_validation_options : dvo.resource_record_name]
 
+  depends_on = [cloudflare_dns_record.cert_validation]
 
+  timeouts {
+    create = "10m"  # Timeout to wait for DNS propogation
+  }
+}
+```
 
 #### Resources
 
