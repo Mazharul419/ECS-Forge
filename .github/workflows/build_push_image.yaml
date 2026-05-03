@@ -6,10 +6,7 @@ on:
 
 env:
   AWS_REGION: eu-west-2
-  ECR_REPOSITORY: ecs-project-global-ecr
-  ECS_CLUSTER_DEV: ecs-project-dev-cluster
-  ECS_SERVICE_DEV: ecs-project-dev-ecs-service
-  ECS_TASK_DEV: ecs-project-dev-task
+  ECR_REPOSITORY: ecs-forge-global-ecr
 
 permissions:
   id-token: write
@@ -53,7 +50,6 @@ jobs:
         id: build
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ecs-project-global-ecr
           IMAGE_TAG: ${{ steps.vars.outputs.sha }}
         run: |
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
