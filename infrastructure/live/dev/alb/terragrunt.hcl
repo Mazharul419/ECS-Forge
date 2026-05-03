@@ -19,7 +19,7 @@ dependency "vpc" {
     vpc_id            = "vpc-mock"
     public_subnet_ids = ["subnet-mock-1", "subnet-mock-2"]
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "security_groups" {
@@ -28,7 +28,7 @@ dependency "security_groups" {
   mock_outputs = {
     alb_security_group_id = "sg-mock"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "acm" {
@@ -37,7 +37,7 @@ dependency "acm" {
   mock_outputs = {
     certificate_arn = "arn:aws:acm:eu-west-2:123456789012:certificate/mock"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 inputs = {

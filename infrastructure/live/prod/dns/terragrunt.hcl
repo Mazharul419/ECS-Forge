@@ -18,7 +18,7 @@ dependency "alb" {
   mock_outputs = {
     alb_dns_name = "mock-alb.eu-west-2.elb.amazonaws.com"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 inputs = {

@@ -18,7 +18,7 @@ dependency "vpc" {
   mock_outputs = {
     private_subnet_ids = ["subnet-mock-1", "subnet-mock-2"]
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "security_groups" {
@@ -27,7 +27,7 @@ dependency "security_groups" {
   mock_outputs = {
     ecs_security_group_id = "ecs-sg-mock"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "alb" {
@@ -36,7 +36,7 @@ dependency "alb" {
   mock_outputs = {
     target_group_arn = "arn:aws:elasticloadbalancing:eu-west-2:123456789012:targetgroup/mock/mock"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "ecr" {
@@ -45,7 +45,7 @@ dependency "ecr" {
   mock_outputs = {
     repository_url = "123456789012.dkr.ecr.eu-west-2.amazonaws.com/ecs-project"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
 }
 
 dependency "vpc_endpoints" {
