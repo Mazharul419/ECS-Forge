@@ -1217,7 +1217,32 @@ resource "aws_acm_certificate" "main" {
 }
 ```
 
-ACM returns domain validation options, which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1) - which look like this:
+ACM returns domain validation options (dvo), which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1). To break this down:
+
+Objects are a [collection of named attributes that each have their own type](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#object). It's a pair of curly braces containing a series of <KEY> = <TYPE> pairs. [These can be seperated by a comma, or line-break.](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects).
+
+Example:
+```
+{
+  a = "test123"
+  b = "test456"
+}
+```
+
+These are contained in `set`s which is a collection of unique values with no secondary identifiers or ordering. They must be the same type.
+
+Example:
+```
+[
+  "d",
+  "e",
+  "f"
+]
+```
+
+These are both examples of [structural types](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#structural-types).
+
+The final format of a `dvo` ACM returns would look like this:
 
 ```
 [
@@ -1232,7 +1257,7 @@ ACM returns domain validation options, which [are sets of objects](https://regis
 
 ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
 
-In Cloudflare, the CNAME record is added:
+In my case, since I am using Cloudflare, the CNAME record is added to my specific domain `mazharulislam.dev` using the `cloudflare_dns_record` resource:
 
 ```
 resource "cloudflare_dns_record" "cert_validation" {
@@ -1248,11 +1273,13 @@ resource "cloudflare_dns_record" "cert_validation" {
 }
 ```
 
-The `for_each` is a meta-argument that manages each domain validation option (dvo) objects AWS returns, and is the pattern even with one object.
+Breaking this down:
 
-The `for` expression transforms the set from an object (the unordered, unique version of a list from earlier) into a map (key value pairs list).
+`for_each` is a meta-argument that accepts a map or a set of strings and creates and instance for each item in that map/set. This is required for each `dvo` needing a cloudflare dns record - however I only have one, so it is not needed, but included since it is the provided pattern within terraform docs.
 
-This is done by iterating over each element (which is an object), and transforming the set contained within into a map - with the key defined as the domain name (first field) and remaining values in the object, being the new values.
+The `for` expression transforms one complex type value to another. Here, each dvo object from the returned set is transformed into a map (key value pairs list).
+
+ with the key defined as the domain name (first field) and remaining values in the object, being the new values.
 
 Cloudflare then adds these values to its dns records for the domain it belongs to:
 
