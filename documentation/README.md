@@ -1242,17 +1242,17 @@ Example:
 
 These are both examples of [structural types](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#structural-types).
 
-The final format of a `dvo` ACM returns would look like this:
+The final format of a `dvo` ACM returns looks like this:
 
 ```
-[
-  {
-    domain_name          = "tm.mazharulislam.dev"
-    resource_record_name = "_abc123.tm.mazharulislam.dev."
-    resource_record_type = "CNAME"
-    resource_record_value = "_xyz789.acm-validations.aws."
-  }
-]
+12:15:03.218 STDOUT [acm] terraform: domain_validation_options = toset([
+12:15:03.218 STDOUT [acm] terraform:   {
+12:15:03.218 STDOUT [acm] terraform:     "domain_name" = "prod.mazharulislam.dev"
+12:15:03.218 STDOUT [acm] terraform:     "resource_record_name" = "_7835c2640307344f99a3609672fcef50.prod.mazharulislam.dev."
+12:15:03.219 STDOUT [acm] terraform:     "resource_record_type" = "CNAME"
+12:15:03.219 STDOUT [acm] terraform:     "resource_record_value" = "_ac44905faf20f74f1820c6ae2b83ce83.jkddzztszm.acm-validations.aws."
+12:15:03.219 STDOUT [acm] terraform:   },
+12:15:03.220 STDOUT [acm] terraform: ])
 ```
 
 ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
@@ -1277,6 +1277,8 @@ Breaking this down:
 
 `for_each` is a meta-argument that accepts a map or a set of strings and creates and instance for each item in that map/set. This is required for each `dvo` needing a cloudflare dns record - however I only have one, so it is not needed, but included since it is the provided pattern within terraform docs.
 
+For this to work, each `dvo` object must be transformed into a `map`.
+
 The `for` expression transforms one complex type value to another. Here, each dvo object from the returned set is transformed into a map (key value pairs list).
 
  with the key defined as the domain name (first field) and remaining values in the object, being the new values.
@@ -1299,6 +1301,8 @@ resource "cloudflare_dns_record" "cert_validation" {
 }
 
 ```
+
+
 
 The ACM validation waiter polls ACM until it sees the record:
 
@@ -1341,10 +1345,6 @@ resource "aws_acm_certificate_validation" "main" {
 | <a name="output_certificate_domain"></a> [certificate\_domain](#output\_certificate\_domain) | Domain name of the certificate |
 | <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the certificate |
 | <a name="output_validation_record_fqdns"></a> [validation\_record\_fqdns](#output\_validation\_record\_fqdns) | FQDNs of the validation records |
-
-Certificate Request
-DNS Validation Record
-Certificate Validation
 
 ### ALB (Application Load Balancer) Module
 #### Resources
