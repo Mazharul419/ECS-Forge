@@ -58,7 +58,7 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Resources](#resources-3)
       - [Inputs](#inputs-3)
       - [Outputs](#outputs-3)
-    - [ALB (Application Load Balancer) Module](#alb-application-load-balancer-module)
+    - [Application Load Balancer (ALB) Module](#application-load-balancer-alb-module)
       - [Resources](#resources-4)
       - [Inputs](#inputs-4)
       - [Outputs](#outputs-4)
@@ -66,7 +66,7 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Resources](#resources-5)
       - [Inputs](#inputs-5)
       - [Outputs](#outputs-5)
-    - [ECS Module](#ecs-module)
+    - [Elastic Container Service (ECS) Module](#elastic-container-service-ecs-module)
       - [Resources](#resources-6)
       - [Inputs](#inputs-6)
       - [Outputs](#outputs-6)
@@ -1302,7 +1302,7 @@ resource "cloudflare_dns_record" "cert_validation" {
 
 ```
 
-
+Due to how Cloudflare interacts with DNS records, the trailing `.` and `domain_name` are removed with the `trimsuffix` function. 
 
 The ACM validation waiter polls ACM until it sees the record:
 
@@ -1346,7 +1346,20 @@ resource "aws_acm_certificate_validation" "main" {
 | <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the certificate |
 | <a name="output_validation_record_fqdns"></a> [validation\_record\_fqdns](#output\_validation\_record\_fqdns) | FQDNs of the validation records |
 
-### ALB (Application Load Balancer) Module
+### Application Load Balancer (ALB) Module
+
+This module sets up the [Application Load Balancer (ALB)](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) - a single point of contact which forwards requests to the registered, healthy targets (EC2 instances) within the defined target group - distributing incoming traffic across multiple availability zones.
+
+It is configured with listeners on HTTPS and HTTP - with the following rules set up for incoming traffic from clients:
+
+If HTTPS, it will terminate the SSL/TLS connection using the issued ACM certificate (in the DNS module).
+
+If HTTP, the ALB will give a HTTP_301 permanently moved status code, and redirect the HTTP connection to HTTPs.
+
+It uses a round-robin algorithm to route traffic.
+
+It also has a health check - which checks if containers are healthy on the `/healthz` path before deciding to forward traffic across.
+
 #### Resources
 
 | Name | Type |
@@ -1376,13 +1389,9 @@ resource "aws_acm_certificate_validation" "main" {
 | <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the ALB |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the target group |
 
-
-Load Balancer
-Target Group
-HTTPS Listener
-HTTP Listener (Redirect)
-
 ### DNS Module
+
+This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev. and prod. mazharulislam.dev to the application load balancer DNS name. The DNS record can't be created until the ALB DNS name is known, hence the depends-on.
 
 #### Resources
 
@@ -1409,7 +1418,11 @@ HTTP Listener (Redirect)
 | <a name="output_fqdn"></a> [fqdn](#output\_fqdn) | Fully qualified domain name |
 | <a name="output_record_id"></a> [record\_id](#output\_record\_id) | Cloudflare record ID |
 
-### ECS Module
+### Elastic Container Service (ECS) Module
+
+This module sets up the Elastic Container Service (ECS) from AWS, a service to manage containers at scale.
+
+
 
 #### Resources
 
