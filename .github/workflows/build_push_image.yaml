@@ -55,6 +55,13 @@ jobs:
           IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
           docker build -t ${IMAGE_URI} .
           echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+      
+      - name: Scan image with Grype
+        uses: anchore/scan-action@v7
+        with:
+          image: ${{ steps.build.outputs.image_uri }}
+          fail-build: true
+          severity-cutoff: critical
 
       - name: Login to ECR (refresh token)
         id: login-ecr-push

@@ -1,0 +1,127 @@
+{
+  "vuln": "GHSA-p483-wpfp-42cj",
+  "name": "code-server",
+  "version": "0.0.0",
+  "locations": [
+    {
+      "path": "/app/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-p483-wpfp-42cj",
+  "name": "code-server",
+  "version": "1.112.0",
+  "locations": [
+    {
+      "path": "/app/lib/vscode/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/lib/vscode/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-2gp3-6c9p-jp7w",
+  "name": "code-server",
+  "version": "0.0.0",
+  "locations": [
+    {
+      "path": "/app/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-2gp3-6c9p-jp7w",
+  "name": "code-server",
+  "version": "1.112.0",
+  "locations": [
+    {
+      "path": "/app/lib/vscode/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/lib/vscode/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-frjg-g767-7363",
+  "name": "code-server",
+  "version": "0.0.0",
+  "locations": [
+    {
+      "path": "/app/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-frjg-g767-7363",
+  "name": "code-server",
+  "version": "1.112.0",
+  "locations": [
+    {
+      "path": "/app/lib/vscode/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/lib/vscode/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-49x3-8228-3w3m",
+  "name": "code-server",
+  "version": "0.0.0",
+  "locations": [
+    {
+      "path": "/app/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-49x3-8228-3w3m",
+  "name": "code-server",
+  "version": "1.112.0",
+  "locations": [
+    {
+      "path": "/app/lib/vscode/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/lib/vscode/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}

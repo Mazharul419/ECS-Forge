@@ -1,0 +1,7 @@
+ignore:
+  - vulnerability: GHSA-p483-wpfp-42cj
+  - vulnerability: GHSA-2gp3-6c9p-jp7w
+  - vulnerability: GHSA-frjg-g767-7363
+  - vulnerability: GHSA-49x3-8228-3w3m
+
+fail-on-severity: "critical"

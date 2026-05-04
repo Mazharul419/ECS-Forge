@@ -80,6 +80,8 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Outputs](#outputs-8)
   - [Live Environment Configurations](#live-environment-configurations)
   - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
+    - [CI - Build and Scan Docker image](#ci---build-and-scan-docker-image)
+    - [](#)
   - [Dockerfile Explained](#dockerfile-explained)
   - [Bootstrap Script](#bootstrap-script)
   - [Supporting Configuration Files	37](#supporting-configuration-files37)
@@ -1532,6 +1534,117 @@ Terragrunt Dependencies
 
 ## CI/CD Pipelines (GitHub Actions)
 Key CI/CD Sections
+### CI - Build and Scan Docker image
+
+Grype image scanning
+
+Doing basic Grype image scanning can see two criticals:
+
+```
+code-server         0.0.0                         4.99.4             npm   GHSA-p483-wpfp-42cj  High        0.3% (55th)    0.3    
+code-server         1.112.0                       4.99.4             npm   GHSA-p483-wpfp-42cj  High        0.3% (55th)    0.3    
+code-server         0.0.0                         3.12.0             npm   GHSA-2gp3-6c9p-jp7w  Medium      0.4% (60th)    0.2    
+code-server         1.112.0                       3.12.0             npm   GHSA-2gp3-6c9p-jp7w  Medium      0.4% (60th)    0.2    
+code-server         0.0.0                         4.10.1             npm   GHSA-frjg-g767-7363  Critical    0.2% (43rd)    0.2    
+code-server         1.112.0                       4.10.1             npm   GHSA-frjg-g767-7363  Critical    0.2% (43rd)    0.2    
+code-server         0.0.0                         3.12.0             npm   GHSA-49x3-8228-3w3m  High        0.2% (47th)    0.2    
+code-server         1.112.0                       3.12.0             npm   GHSA-49x3-8228-3w3m  High        0.2% (47th)    0.2
+```
+
+Looking at these further through JSON output:
+
+```
+{
+  "vuln": "GHSA-frjg-g767-7363",
+  "name": "code-server",
+  "version": "0.0.0",
+  "locations": [
+    {
+      "path": "/app/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+{
+  "vuln": "GHSA-frjg-g767-7363",
+  "name": "code-server",
+  "version": "1.112.0",
+  "locations": [
+    {
+      "path": "/app/lib/vscode/package.json",
+      "layerID": "sha256:290e496addea53fdf986d99ac1c0d30db88022207cfc90dc56971f66a70703a2",
+      "accessPath": "/app/lib/vscode/package.json",
+      "annotations": {
+        "evidence": "primary"
+      }
+    }
+  ]
+}
+
+```
+With `/app/package.json`:
+
+The file exists within the root of the code-server source, and looks like this:
+
+```
+"name": "code-server",
+"license": "MIT",
+"version": "0.0.0",
+...
+```
+
+This is fixed no matter which version of the code-server repo is downloaded. 
+
+Having run the following command:
+
+```
+$ docker run --rm ecs-forge-global-ecr:initial code-server --version
+[2026-05-04T09:24:43.378Z] info  Wrote default config file to /home/coder/.config/code-server/config.yaml
+0.0.0 d7599ae360900ad55b503e3c840b417a1eae4798 with Code 1.112.0
+```
+The code-server version 0.0.0 still appears, however it is linked to a sha256 hash - pointing to the v1.112.0 commit I downloaded code-server from: https://github.com/coder/code-server/commit/d7599ae360900ad55b503e3c840b417a1eae4798
+
+With the `/app/lib/vscode/package.json` file:
+
+This is actually the vscode version - and is mislabelled as the code-server version:
+
+```
+"name": "code-server",
+"version": "1.112.0",
+"private": true,
+```
+Developers have acknowledged this issue, but have not fixed it yet. This is also [acknowledged by the Wolfi OS advisory database](https://github.com/wolfi-dev/advisories/blob/main/code-server.advisories.yaml) - Wolfi is a Linux distro (by Chainguard) focused on security.
+
+
+The same pattern applies to other CVEs - a summary table below:
+
+| Advisory            | Affected versions | Patched versions |
+|---------------------|-------------------|------------------|
+| GHSA-49x3-8228-3w3m | < 3.12.0          | 3.12.0           |
+| GHSA-p483-wpfp-42cj | < 3.12.0          | 3.12.0           |
+| GHSA-frjg-g767-7363 | < 4.10.1          | 4.10.1           |
+| GHSA-2gp3-6c9p-jp7w | < 4.99.4          | 4.99.4           |
+
+Since these are false positives, these are ignored in Grype using the `ignore` line in the .`.`.`.grype.yaml` file:
+
+```
+ignore:
+  - vulnerability: GHSA-p483-wpfp-42cj
+  - vulnerability: GHSA-2gp3-6c9p-jp7w
+  - vulnerability: GHSA-frjg-g767-7363
+  - vulnerability: GHSA-49x3-8228-3w3m
+
+fail-on-severity: "critical"
+```
+
+Any new Critical vulnerabilities that arise will fail the workflow though.
+
+### 
 OIDC Permissions
 AWS Authentication
 Task Definition Update
