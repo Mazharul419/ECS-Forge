@@ -102,6 +102,15 @@ jobs:
           tg_command: run --all validate
           tg_cli_args: --non-interactive
 
+      - name: Terragrunt Format Dev
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: hcl format --check --diff
+          tg_cli_args: --non-interactive
+
       - name: Terragrunt Plan Dev
         if: inputs.action == 'plan'
         uses: gruntwork-io/terragrunt-action@v2
@@ -185,6 +194,15 @@ jobs:
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
           tg_dir: ${{ steps.set-dir.outputs.dir }}
           tg_command: run --all validate
+          tg_cli_args: --non-interactive
+
+      - name: Terragrunt Format Prod
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: hcl format --check --diff
           tg_cli_args: --non-interactive
 
       - name: Terragrunt Plan Prod

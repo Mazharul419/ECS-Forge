@@ -1,7 +1,7 @@
 locals {
   environment   = "dev"
   subdomain     = "dev"
-  desired_count = 1          # Single task (save money)
+  desired_count = 1 # Single task (save money)
 
   # Network
   vpc_cidr             = "10.0.0.0/16"
