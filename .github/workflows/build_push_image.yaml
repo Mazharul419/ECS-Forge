@@ -57,12 +57,22 @@ jobs:
           echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
       
       - name: Scan image with Grype
+        uses: anchore/scan-action@v7
+        with:
+          image: ${{ steps.build.outputs.image_uri }}
+          fail-build: true
+          severity-cutoff: critical
+          output-format: table
+      
+      - name: Generate HTML report with Grype
         run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
           git clone https://github.com/anchore/grype.git ~/.grype
           grype -o template -t ~/.grype/templates/html.tmpl ${IMAGE_URI} > report.html
 
       - name: Upload Grype report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: grype-report
           path: report.html
