@@ -62,7 +62,7 @@ jobs:
           grype -o template -t ~/.grype/templates/html.tmpl ${IMAGE_URI} > report.html
 
       - name: Upload Grype report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: grype-report
           path: report.html
