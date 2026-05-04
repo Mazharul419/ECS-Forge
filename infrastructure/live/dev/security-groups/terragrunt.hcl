@@ -23,7 +23,7 @@ dependency "vpc" {
 }
 
 inputs = {
-  project_name   =   include.root.locals.project_name
+  project_name   = include.root.locals.project_name
   aws_region     = include.root.locals.aws_region
   environment    = local.env.environment
   vpc_id         = dependency.vpc.outputs.vpc_id
