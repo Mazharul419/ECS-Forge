@@ -61,6 +61,12 @@ jobs:
           git clone git@github.com:anchore/grype.git ~/.grype
           grype -o template -t ~/.grype/templates/html.tmpl ${IMAGE_URI} > report.html
 
+      - name: Upload Grype report
+        uses: actions/upload-artifact@v3
+        with:
+          name: grype-report
+          path: report.html
+
       - name: Login to ECR (refresh token)
         id: login-ecr-push
         uses: aws-actions/amazon-ecr-login@v2
