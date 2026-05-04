@@ -6,15 +6,6 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "ecs" {                             # Defines where ECS logs will be stored
-  name              = "/ecs/${var.project_name}-${var.environment}"
-  retention_in_days = 30
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-logs"
-  }
-}
-
 resource "aws_iam_role" "ecs_task_execution" {                          # defines IAM role for ECS task execution
   name = "${var.project_name}-${var.environment}-ecs-execution-role"
 
@@ -82,7 +73,17 @@ resource "aws_ecs_task_definition" "main" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-task=definition"
+    Name = "${var.project_name}-${var.environment}-task-definition"
+  }
+}
+
+
+resource "aws_cloudwatch_log_group" "ecs" {                             # Defines where ECS logs will be stored
+  name              = "/ecs/${var.project_name}-${var.environment}"
+  retention_in_days = 30
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-logs"
   }
 }
 

@@ -1424,7 +1424,54 @@ This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev.
 
 This module sets up the Elastic Container Service (ECS) from AWS, a service to manage containers at scale.
 
+A cluster is defined.
 
+An IAM role is created with the `AmazonECSTaskExecutionRolePolicy` attached. This gives ECS permission to pull the container image, write logs to Cloudwatch etc. Distinct from task role.
+
+The Trust policy (WHO can assume the role) is first written:
+
+```
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+```
+The `Version` number is standard policy version when writing AWS policies.
+
+`Principal` is the identity being granted access - in this case `ecs-tasks.amazonaws.com`.
+
+`Action` is the specific Security Token Service (STS) which exchanges the principals identity for temporary credentials.
+
+`Effect = "Allow"` grants the trust.
+
+`jsonencode` is a HCL function required since AWS expects policy to be written in JSON string - not terraform code.
+
+
+For the task definition:
+
+`family` is the name of the task definition - everytime AWS has a new revision of this, it will be added. i.e., `ecs-forge-prod-task:3`.
+
+`network_mode = "awsvpc"` [provides each task it's own Elastic Network Interface (ENI)](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-networking.html)
+
+`requires_compatibilities` Launches as Fargate Launch type
+
+
+Log configuration ensures stdout/stderr goes straight to Cloudwatch logs, enabling observability. Log group is used with it to ensure log group has a limited retention period and tagging. Otherwise a log group is auto-created and has infinite retention.
+
+`lifecycle` block ensures if container definitions change from CD process, terraform doesn't try to revert it. CD is responsible for the lifecycle, not terraform.
+
+
+The ECS service is the controller for running the containers, by continously reconciling actual state against desired state.
+
+When ECS starts a new task - it automatically registers the tasks IP and port with the target group.
+
+This is the self-healing part of infrastructure - ensuring if a task stops, it gets de-registered and a new task registered to replace this.
 
 #### Resources
 
@@ -1461,13 +1508,6 @@ This module sets up the Elastic Container Service (ECS) from AWS, a service to m
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Name of the ECS cluster |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the ECS service |
 | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ARN of the task definition |
-
-ECS Concepts
-Cluster
-CloudWatch Log Group
-Task Execution Role
-Task Definition
-ECS Service
 
 ### ECR Module
 #### Resources
