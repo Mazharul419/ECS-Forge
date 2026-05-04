@@ -68,7 +68,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
           git clone https://github.com/anchore/grype.git ~/.grype
-          grype -o template -t ~/.grype/templates/html.tmpl ${IMAGE_URI} > report.html
+          grype -o template -t ~/.grype/templates/html.tmpl ${{ steps.build.outputs.image_uri }} > report.html
 
       - name: Upload Grype report
         uses: actions/upload-artifact@v4
