@@ -1,4 +1,4 @@
-name: Terragrunt Deploy
+name: Terragrunt Deploy (Manual)
 
 on:
   workflow_dispatch:

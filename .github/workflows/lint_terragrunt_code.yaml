@@ -1,4 +1,4 @@
-name: Terragrunt Deploy
+name: Lint Terragrunt Code (Automatic)
 
 on:
   push:

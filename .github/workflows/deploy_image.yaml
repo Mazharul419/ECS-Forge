@@ -1,4 +1,4 @@
-name: Deploy to Environment
+name: Deploy Image to ECS (Manual)
 
 on:
   workflow_dispatch:

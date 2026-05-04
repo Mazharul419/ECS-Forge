@@ -1,4 +1,4 @@
-name: CI - Build and Scan Docker image
+name: CI - Build and Scan Docker image (Automatic)
 
 on:
   push:
