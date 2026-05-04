@@ -1536,6 +1536,8 @@ Terragrunt Dependencies
 Key CI/CD Sections
 ### CI - Build and Scan Docker image
 
+
+
 Grype image scanning
 
 Doing basic Grype image scanning can see two criticals:
@@ -1623,12 +1625,12 @@ Developers have acknowledged this issue, but have not fixed it yet. This is also
 
 The same pattern applies to other CVEs - a summary table below:
 
-| Advisory            | Affected versions | Patched versions |
-|---------------------|-------------------|------------------|
-| GHSA-49x3-8228-3w3m | < 3.12.0          | 3.12.0           |
-| GHSA-p483-wpfp-42cj | < 3.12.0          | 3.12.0           |
-| GHSA-frjg-g767-7363 | < 4.10.1          | 4.10.1           |
-| GHSA-2gp3-6c9p-jp7w | < 4.99.4          | 4.99.4           |
+| Advisory            | Affected versions | Patched versions | Source                                                                                               |
+|---------------------|-------------------|------------------|------------------------------------------------------------------------------------------------------|
+| GHSA-frjg-g767-7363 | < 4.10.1          | 4.10.1           | https://github.com/advisories/GHSA-frjg-g767-7363                                                    |
+| GHSA-p483-wpfp-42cj | < 3.12.0          | 3.12.0           | https://github.com/advisories/GHSA-p483-wpfp-42cj                                                    |
+| GHSA-2gp3-6c9p-jp7w | < 4.99.4          | 4.99.4           | https://github.com/advisories/GHSA-2gp3-6c9p-jp7w                                                    |
+| GHSA-49x3-8228-3w3m | < 3.12.0          | 3.12.0           | https://images.chainguard.dev/security/CVE-2021-3810,  https://www.cvedetails.com/cve/CVE-2021-3810/ |
 
 Since these are false positives, these are ignored in Grype using the `ignore` line in the .`.`.`.grype.yaml` file:
 

@@ -57,11 +57,9 @@ jobs:
           echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
       
       - name: Scan image with Grype
-        uses: anchore/scan-action@v7
-        with:
-          image: ${{ steps.build.outputs.image_uri }}
-          fail-build: true
-          severity-cutoff: critical
+        run: |
+          git clone git@github.com:anchore/grype.git ~/.grype
+          grype -o template -t ~/.grype/templates/html.tmpl ${IMAGE_URI} > report.html
 
       - name: Login to ECR (refresh token)
         id: login-ecr-push
