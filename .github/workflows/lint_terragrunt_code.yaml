@@ -1,20 +1,8 @@
-name: Terragrunt Destroy
+name: Terragrunt Deploy
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to destroy'
-        required: true
-        type: choice
-        options:
-          - dev
-          - prod
-          - all
-      confirm_destroy:
-        description: 'Type "confirm-destroy" to run destroy'
-        required: false
-        type: string
+  push:
+    branches: [main]
 
 env:
   AWS_REGION: eu-west-2
@@ -28,25 +16,9 @@ permissions:
   contents: read
 
 jobs:
-  validate:
-    name: Validate
+  Dev:
+    name: Dev
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Check destroy confirmation
-        if: inputs.confirm_destroy != 'confirm-destroy'
-        run: |
-          echo "Destroy action requires confirmation."
-          echo "Please type 'confirm-destroy' in the confirm_destroy field."
-          exit 1
-
-  dev:
-    name: dev
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: dev
-    if: inputs.environment == 'dev' || inputs.environment == 'all'
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -104,32 +76,17 @@ jobs:
           tg_command: hcl format --check --diff
           tg_cli_args: --non-interactive
 
-      - name: Terragrunt Destroy
-        uses: gruntwork-io/terragrunt-action@v2
-        with:
-          tf_version: ${{ env.TERRAFORM_VERSION }}
-          tg_version: ${{ env.TERRAGRUNT_VERSION }}
-          tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run --all destroy'
-          tg_cli_args: '--non-interactive'
-
-      - name: Summary
+      - name: Dev Summary
         if: always()
         run: |
-          echo "### Terragrunt ${{ inputs.action }} ${{ inputs.environment }} Complete" >> $GITHUB_STEP_SUMMARY
+          echo "### Terragrunt Dev linting Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Action**: ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Directory**: ${GITHUB_WORKSPACE}/infrastructure/live/dev" >> $GITHUB_STEP_SUMMARY
+          echo "- **Directory**: $GITHUB_WORKSPACE/infrastructure/live/dev" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-  
-  prod:
-    name: prod
-    needs: validate
-    runs-on: ubuntu-latest
-    environment: prod
-    if: inputs.environment == 'prod' || inputs.environment == 'all'
 
+  Prod:
+    name: Prod
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -160,21 +117,38 @@ jobs:
       - name: Print working directory
         run: echo ${{ steps.set-dir.outputs.dir }}
 
-      - name: Terragrunt Destroy
+      - name: Terragrunt Init Prod
         uses: gruntwork-io/terragrunt-action@v2
         with:
           tf_version: ${{ env.TERRAFORM_VERSION }}
           tg_version: ${{ env.TERRAGRUNT_VERSION }}
           tg_dir: ${{ steps.set-dir.outputs.dir }}
-          tg_command: 'run --all destroy'
-          tg_cli_args: '--non-interactive'
+          tg_command: run --all init
+          tg_cli_args: --non-interactive
 
-      - name: Summary
+      - name: Terragrunt Validate Prod
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: run --all validate
+          tg_cli_args: --non-interactive
+
+      - name: Terragrunt Format Prod
+        uses: gruntwork-io/terragrunt-action@v2
+        with:
+          tf_version: ${{ env.TERRAFORM_VERSION }}
+          tg_version: ${{ env.TERRAGRUNT_VERSION }}
+          tg_dir: ${{ steps.set-dir.outputs.dir }}
+          tg_command: hcl format --check --diff
+          tg_cli_args: --non-interactive
+
+      - name: Prod Summary
         if: always()
         run: |
-          echo "### Terragrunt ${{ inputs.action }} ${{ inputs.environment }} Complete" >> $GITHUB_STEP_SUMMARY
+          echo "### Terragrunt Prod linting Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Action**: ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Directory**: ${GITHUB_WORKSPACE}/infrastructure/live/prod" >> $GITHUB_STEP_SUMMARY
+          echo "- **Directory**: $GITHUB_WORKSPACE/infrastructure/live/prod" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
