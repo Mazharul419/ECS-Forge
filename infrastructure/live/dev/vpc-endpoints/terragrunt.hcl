@@ -20,7 +20,7 @@ dependency "vpc" {
     private_subnet_ids      = ["subnet-mock-1", "subnet-mock-2"]
     private_route_table_ids = ["rtb-mock-1", "rtb-mock-2"]
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan"]
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
 }
 
 dependency "security_groups" {
@@ -29,7 +29,7 @@ dependency "security_groups" {
   mock_outputs = {
     vpc_endpoints_security_group_id = "sg-mock"
   }
-  mock_outputs_allowed_terraform_commands = ["validate", "plan", "destroy"]
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
 }
 
 inputs = {
