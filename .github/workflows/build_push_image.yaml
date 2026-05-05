@@ -71,7 +71,7 @@ jobs:
           grype -o template -t ~/.grype/templates/html.tmpl ${{ steps.build.outputs.image_uri }} > report.html
 
       - name: Upload Grype report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: grype-report
