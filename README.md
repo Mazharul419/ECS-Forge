@@ -37,7 +37,7 @@
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong>»»» IN-DEPTH DOCUMENTATION ««« </strong></a>
     <br />
-    <a href="https://https://mazharul419.github.io/ECS-Forge/ecs-architecture-diagram.html"><strong>»»» HD ARCHITECTURE DIAGRAM ««« </strong></a>
+    <a href="https://mazharul419.github.io/ECS-Forge/ecs-architecture-diagram.html"><strong>»»» HD ARCHITECTURE DIAGRAM ««« </strong></a>
     <br />
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
