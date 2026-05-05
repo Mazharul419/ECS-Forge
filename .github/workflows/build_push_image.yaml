@@ -76,6 +76,7 @@ jobs:
         with:
           name: grype-report
           path: report.html
+          archive: false
 
       - name: Login to ECR (refresh token)
         id: login-ecr-push
