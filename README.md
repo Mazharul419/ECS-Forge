@@ -88,7 +88,9 @@ The application is hosted on AWS - hidden behind an application load balancer.
 * 95% Docker image size reduction through multi-stage builds 
 * Privacy-by-design via private subnet applications routing through Application Load Balancer (ALB)
 * Enhanced security posture using short-lived GitHub OIDC credentials
+* Image scanning secured via Anchore Grype, with failure upon critical vulnerabilities
 * Adherence to Don't-Repeat-Yourself (DRY) principle through Terragrunt deployment
+* Automatic linting of terragrunt code upon code change - ONLY correctly formatted and validated infra passes through
 * Secure remote state through S3 native locking
 * Intelligent FinOps strategy via resource tagging for cost management
 
