@@ -4,6 +4,7 @@ Dockerfile
 infrastructure/
 *.md
 !app/
+ECS Architecture Diagram.html
 
 # Node modules (will be installed inside container)
 **/node_modules
