@@ -328,9 +328,8 @@ Additional screenshots, code examples and demos to be added as per roadmap below
 ## Roadmap
 
 - [ ] Complete documentation for code 
-- [x] Architectural decisions doc
-- [ ] Add shell environment to Docker image
-- [ ] Add healthcheck to Dockerfile
+- [ ] Add Autoscaling
+- [ ] Minimal IAM permissions for OIDC role
 - [ ] + Many more
 
 See the [open issues](https://github.com/Mazharul419/ECS-Forge/issues) for a full list of proposed features (and known issues).
