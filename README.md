@@ -402,7 +402,7 @@ Project Link: [https://github.com/Mazharul419/ECS-Forge](https://github.com/Mazh
 [stars-url]: https://github.com/Mazharul419/ECS-Forge/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Mazharul419/ECS-Forge.svg?style=for-the-badge
 [issues-url]: https://github.com/Mazharul419/ECS-Forge/issues
-[license-shield]: https://img.shields.io/github/license/Mazharul419/ECS-Forge.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/Mazharul419/ECS-Forge.svg?style=for-the-badge&cacheSeconds=0
 [license-url]: https://github.com/Mazharul419/ECS-Forge/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/mazharul419
