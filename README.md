@@ -12,8 +12,9 @@
 
 [![CI - Build and Scan Docker image (Automatic)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/build_push_image.yaml/badge.svg)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/build_push_image.yaml)
 [![Lint Terragrunt Code (Automatic)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/lint_terragrunt_code.yaml/badge.svg)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/lint_terragrunt_code.yaml)
-
 </div>
+
+
 
 <!-- PROJECT LOGO -->
 
@@ -402,7 +403,7 @@ Project Link: [https://github.com/Mazharul419/ECS-Forge](https://github.com/Mazh
 [issues-shield]: https://img.shields.io/github/issues/Mazharul419/ECS-Forge.svg?style=for-the-badge
 [issues-url]: https://github.com/Mazharul419/ECS-Forge/issues
 [license-shield]: https://img.shields.io/github/license/Mazharul419/ECS-Forge.svg?style=for-the-badge
-[license-url]: https://github.com/Mazharul419/ECS-Forge/tree/main?tab=MIT-1-ov-file
+[license-url]: https://github.com/Mazharul419/ECS-Forge/tree/main?tab=MIT-1-ov-file#MIT-1-ov-file
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/mazharul419
 [product-screenshot]: images/screenshot.png
