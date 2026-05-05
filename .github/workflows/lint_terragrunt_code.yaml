@@ -3,7 +3,7 @@ name: Lint Terragrunt Code (Automatic)
 on:
   push:
     branches: [main]
-    paths: [infrastructure/live/dev/**, infrastructure/live/prod/**, infrastructure/live/_env/**, infrastructure/modules/**]
+    paths: [infrastructure/**]
 
 env:
   AWS_REGION: eu-west-2
