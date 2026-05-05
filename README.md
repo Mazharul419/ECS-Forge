@@ -10,6 +10,9 @@
 [![project_license][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+[![CI - Build and Scan Docker image (Automatic)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/build_push_image.yaml/badge.svg)](https://github.com/Mazharul419/ECS-Forge/actions/workflows/build_push_image.yaml)
+  
+
 </div>
 
 <!-- PROJECT LOGO -->
