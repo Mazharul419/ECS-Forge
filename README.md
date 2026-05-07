@@ -87,7 +87,7 @@ This is the end-to-end deployment of the code-server application hosted on the A
 The application is hosted on AWS - hidden behind an application load balancer.
 
 ## Key Features
-* 35% Cost reduction through use of VPC endpoints vs NAT Gateways
+* 34% Cost reduction through use of VPC endpoints vs NAT Gateways
 * 95% Docker image size reduction through multi-stage builds 
 * Privacy-by-design via private subnet applications routing through Application Load Balancer (ALB)
 * Enhanced security posture using short-lived GitHub OIDC credentials
