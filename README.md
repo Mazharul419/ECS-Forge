@@ -234,36 +234,88 @@ The application is hosted on AWS - hidden behind an application load balancer.
 │   ├── provider.tf
 │   └── terragrunt.hcl
 └── other
-    ├── both.tf
-    ├── createpolicy.tf
-    └── deletepolicy.tf
+  ├── grype
+  │   ├── grypejson.txt
+  │   ├── package.json
+  │   ├── vscodepackage.json
+  │   └── vuln.txt
+  ├── policies
+  │   ├── both.tf
+  │   ├── createpolicy.tf
+  │   └── deletepolicy.tf
+  └── screenshots
+      ├── build_push.png
+      ├── deploy_environment.png
+      ├── deploy_image.png
+      ├── destroy environment.png
+      ├── devenv.png
+      ├── lint_terragrunt_code.PNG
+      ├── prodenv.png
+      └── vul_report.PNG
 ```
 
 ## Application
+| Dev Environment |
+|---|
+| <img width="1913" height="999" alt="image" src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/devenv.png" />|
 
-### Dev Environment
-<img width="1913" height="999" alt="image" src="https://github.com/user-attachments/assets/fde6559b-4eee-49c9-8fd5-c580f5c61cc7" />
-
-### Prod Environment
-<img width="1918" height="995" alt="image" src="https://github.com/user-attachments/assets/5ec9349d-573a-43a5-afc1-e5428d1b801e" />
+| Prod Environment |
+|---|
+| <img width="1918" height="995" alt="image" src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/prodenv.png" /> |
 
 ## Pipelines
 
-### Terragrunt Deploy
-deploy_environment.yaml
-<img width="1910" height="985" alt="image" src="https://github.com/user-attachments/assets/9496ab93-9af3-4c91-a4ab-236d49e556b8" />
+### IaC Deployment
 
-### Build and Push Docker image
-build_push_image.yaml
-<img width="1888" height="555" alt="image" src="https://github.com/user-attachments/assets/17c2cf1f-dd24-4907-a049-4d3d49666265" />
+This pipeline is manually triggered - and deploys and destroys infrastructure using Terraform + Terragrunt. 
 
-### Update image
-deploy_image.yaml
-<img width="1905" height="931" alt="image" src="https://github.com/user-attachments/assets/1b78891e-2a17-4c8f-a99b-4947111a5270" />
+Environment selection: Dev or Prod* or All*
 
-### Terragrunt Destroy
-destroy_environment.yaml
-<img width="1897" height="954" alt="image" src="https://github.com/user-attachments/assets/16e75764-5676-4363-9414-11e2f0c2ffd0" />
+Terragrunt command to run: Plan or Apply
+
+>*Requires manual approval
+
+| deploy_environment.yaml |
+|---|
+| <img alt="image" src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/deploy_environment.png" /> |
+
+| destroy_environment.yaml |
+|---|
+| <img alt="image" src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/destroy%20environment.png" /> |
+
+### Image build and Scan
+
+This pipeline auto-triggers upon push to main. Builds a Docker image and scans vulnerabilities using Grype:
+
+| build_push_image.yaml |
+|---|
+| <img src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/build_push.png"/> |
+
+An HTML vulnerability report is built and uploaded as an artifact, ready to be inspected by the dev:
+| report.html |
+|---|
+| <img src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/vul_report.PNG"/> |
+
+
+### IaC code linting 
+
+This pipeline triggers upon push to main and change in the /infrastructure directory. This will initialise, validate, and format the Terragrunt configuration. Fails if any of these gates fail. 
+
+> Even if the configuration is initialised and valid, if formatting is incorrect it will fail too.
+
+| lint_terragrunt_code.yaml |
+|---|
+| <img src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/lint_terragrunt_code.PNG"/> |
+
+### Manual Image deployment
+
+This pipeline is manually triggered - and for a given sha-tagged image in ECR, will update the existing task definition and resulting ECS service to the new Image:
+
+| deploy_image.yaml |
+|---|
+| <img src="https://github.com/Mazharul419/ECS-Forge/blob/main/other/screenshots/deploy_image.png"> |
+
+
 
 
 <!-- GETTING STARTED -->
