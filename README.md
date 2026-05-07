@@ -30,15 +30,18 @@
 
 
   <p align="center">
-    An End-to-End deployment of the code-server application hosted on ECS Fargate
+    <br>
+    <strong>An End-to-End deployment of Code-Server:
+    <br>
+    A browser-based Integrated Development Environnment hosted on ECS Fargate</strong>
     <br />
     <br>
-    <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» KEY ARCHITECTURAL DECISIONS ««« </strong></a>
-    <br />
-    <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong>»»» IN-DEPTH DOCUMENTATION ««« </strong></a>
-    <br />
-    <a href="https://mazharul419.github.io/ECS-Forge/ecs-architecture-diagram.html"><strong>»»» HD ARCHITECTURE DIAGRAM ««« </strong></a>
-    <br />
+    <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"> Key Architectural Decisions</a>
+    &middot;
+    <a href="https://github.com/Mazharul419/ECS-Forge/tree/main/documentation"><strong> In-depth Documentation</a>
+    &middot;
+    <a href="https://mazharul419.github.io/ECS-Forge/ecs-architecture-diagram.html">HD Architecture Diagram</a>
+    <br>
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
     <a href="https://github.com/Mazharul419/ECS-Forge/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
@@ -79,9 +82,7 @@ https://www.loom.com/share/748625955d4243fd9d828fcf824bd1c3
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-
-
-This is an end-to-end deployment of the code-server application via ECS Fargate. Upon push to main, or on successful pull request - a Docker image of the application is automatically built and pushed to ECR - where via manual trigger in Github Actions, deployment to Dev and Prod environment (or both) takes place.
+This is the end-to-end deployment of the code-server application hosted on the AWS ECS Fargate service. Upon push to main, a Docker image of the application is automatically built and pushed to ECR - where via manual trigger in Github Actions, deployment to Dev and Prod environment (or both) takes place.
 
 The application is hosted on AWS - hidden behind an application load balancer.
 
@@ -96,7 +97,7 @@ The application is hosted on AWS - hidden behind an application load balancer.
 * Secure remote state through S3 native locking
 * Intelligent FinOps strategy via resource tagging for cost management
 
-<a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW THE KEY ARCHITECTURAL DECISIONS HERE ««« </strong></a>
+<a href="https://github.com/Mazharul419/ECS-Forge/tree/main/architectural_decisions"><strong>»»» VIEW THE KEY ARCHITECTURAL DECISIONS HERE</strong></a>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
