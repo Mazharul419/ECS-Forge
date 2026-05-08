@@ -1112,7 +1112,7 @@ When adding in the rules, the blank security groups must be referenced using `se
 
 For the S3 gateway endpoint, a seperate security group rule must be defined that targets the prefix list. A data block was defined earlier to import this - and referenced here.
 
-[Source code](https://github.com/Mazharul419/ECS-Forge/tree/main/infrastructure/modules/security-groups/main.tf)  
+[Link to code](https://github.com/Mazharul419/ECS-Forge/tree/main/infrastructure/modules/security-groups/main.tf)  
 
 #### Resources
 
@@ -1170,7 +1170,7 @@ It is 34% cheaper.
 
 This also has the effect of having faster resource communication since there are less hops and the journey from application to service and vice-versa is more direct.
 
-[Source Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc-endpoints/main.tf)
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc-endpoints/main.tf)
 
 #### Resources
 
@@ -1321,6 +1321,8 @@ resource "aws_acm_certificate_validation" "main" {
 }
 ```
 
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/acm/main.tf)
+
 #### Resources
 
 | Name | Type |
@@ -1362,6 +1364,8 @@ It uses a round-robin algorithm to route traffic.
 
 It also has a health check - which checks if containers are healthy on the `/healthz` path before deciding to forward traffic across.
 
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/alb/main.tf)
+
 #### Resources
 
 | Name | Type |
@@ -1394,6 +1398,8 @@ It also has a health check - which checks if containers are healthy on the `/hea
 ### DNS Module
 
 This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev. and prod. mazharulislam.dev to the application load balancer DNS name. The DNS record can't be created until the ALB DNS name is known, hence the depends-on.
+
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/dns/main.tf)
 
 #### Resources
 
@@ -1469,9 +1475,13 @@ Log configuration ensures stdout/stderr goes straight to Cloudwatch logs, enabli
 
 The ECS service is the controller for running the containers, by continously reconciling actual state against desired state.
 
-When ECS starts a new task - it automatically registers the tasks IP and port with the target group.
+When ECS starts a new task - it automatically registers the tasks IP and port with the target group being load balanced by the ALB.
 
 This is the self-healing part of infrastructure - ensuring if a task stops, it gets de-registered and a new task registered to replace this.
+
+A `lifecycle` block is also included here for the task definition, since the container definition is already ignored and is part of the task definition.
+
+[Link to code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/ecs/main.tf)
 
 #### Resources
 
@@ -1510,6 +1520,23 @@ This is the self-healing part of infrastructure - ensuring if a task stops, it g
 | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ARN of the task definition |
 
 ### ECR Module
+
+This module creates an ECR registry for storing container the sha-tagged images provisioned via CI. 
+
+It is also needed for a seperate CD pipeline for which then grabs a specific image from here to update the ECS service.
+
+Images stored here are immutable i.e., cannot be changed - and are identified using the first few digits of the Github commit sha associated with them.
+
+It is also enrypted using [sha-256 encryption](https://docs.aws.amazon.com/AmazonECR/latest/userguide/encryption-at-rest.html).
+
+Images are configured with basic scan against OS vulnerabilities upon push to this repository.
+
+A lifecycle rule is also applied keeping only the last 10 images, minimising costs.
+
+This module is bootstrapped since the ECS service needs to reference an already existing image upon deployment.
+
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/ecr/main.tf)
+
 #### Resources
 
 | Name | Type |
@@ -1535,6 +1562,25 @@ This is the self-healing part of infrastructure - ensuring if a task stops, it g
 | <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url) | ECR repository URL |
 
 ### OIDC Module
+
+This module provisions the OpenID Connect (OIDC) IAM role with policies for ECR access, . This gives ECS permission to pull the container image, write logs to Cloudwatch etc. Distinct from task role.
+
+The Trust policy (WHO can assume the role) is first written:
+
+```
+
+```
+The `Version` number is standard policy version when writing AWS policies.
+
+`Principal` is the identity being granted access - in this case `ecs-tasks.amazonaws.com`.
+
+`Action` is the specific Security Token Service (STS) which exchanges the principals identity for temporary credentials.
+
+`Effect = "Allow"` grants the trust.
+
+`jsonencode` is a HCL function required since AWS expects policy to be written in JSON string - not terraform code.
+
+
 #### Resources
 
 | Name | Type |

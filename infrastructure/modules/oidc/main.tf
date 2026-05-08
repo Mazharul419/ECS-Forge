@@ -10,8 +10,6 @@ resource "aws_iam_openid_connect_provider" "github" {
   }
 }
 
-# Data source for account ID
-data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "github_actions" {
   name = "github-actions-role"
@@ -40,6 +38,8 @@ resource "aws_iam_role" "github_actions" {
     Name = "github-actions-role"
   }
 }
+
+data "aws_caller_identity" "current" {} # Data source for account ID, needed for constructing ARNs in IAM policies
 
 # Github actions policy for ECR access
 resource "aws_iam_role_policy" "github_actions_ecr" {
