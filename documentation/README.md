@@ -75,6 +75,8 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Inputs](#inputs-7)
       - [Outputs](#outputs-7)
     - [OIDC Module](#oidc-module)
+      - [Diagram](#diagram)
+      - [Code explanation](#code-explanation)
       - [Resources](#resources-8)
       - [Inputs](#inputs-8)
       - [Outputs](#outputs-8)
@@ -1563,23 +1565,93 @@ This module is bootstrapped since the ECS service needs to reference an already 
 
 ### OIDC Module
 
-This module provisions the OpenID Connect (OIDC) IAM role with policies for ECR access, . This gives ECS permission to pull the container image, write logs to Cloudwatch etc. Distinct from task role.
+This module provisions the OpenID Connect (OIDC) IAM role with policies for ECR access, deploying new images to ECS, and deploy/destroy infrastructure. These map to the relevant Github Actions workflows which interact with AWS services.
 
-The Trust policy (WHO can assume the role) is first written:
+OIDC is a way for these workflows to authenticate with AWS by using short-term credentials [prevents Github Actions workflows from using long-term credentials](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html) - and if configured correctly, map to an AWS role that ONLY has permissions needed to perform the task required.
+
+#### Diagram
+
+The way it works is shown in this diagram (taken from [Github Docs](https://docs.github.com/en/actions/concepts/security/openid-connect)):
+
+<div align="center">
+
+![alt text](image-2.png)
+
+</div>
+<br>
+
+> From Github:
+> 1. You establish an OIDC trust relationship in the cloud provider, allowing specific GitHub workflows to request cloud access tokens on behalf of a defined cloud role.
+> 2. Every time your job runs, GitHub's OIDC provider auto-generates an OIDC token. This token contains multiple claims to establish a security-hardened and verifiable identity about the specific workflow that is trying to authenticate.
+> 3. A step or action in the workflow job can request a token from GitHub’s OIDC provider, which can then be presented to the cloud provider as proof of the workflow’s identity.
+> 4. Once the cloud provider successfully validates the claims presented in the token, it then provides a short-lived cloud access token that is available only for the duration of the job.
+>
+
+Further breakdown:
+
+Github issues a JSON Web Token (JWT) and present this to AWS STS.
+
+AWS will check if it trusts the issuer by checking aws_iam_openid_connect_provider
+
+It will then check the trust policy to further scope this to this project repo only:
+
+`sub = repo:mazharulislam419/ecs-forge:*`
+
+STS issues temporary credentials with specific permissions defined in the policy.
+
+#### Code explanation
+
+The `aws_iam_openid_connect_provider` resource block is first defined - this registers the external Github IdP service that [supports the OpenID Connect standard](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html):
 
 ```
+resource "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = ["sts.amazonaws.com"]
+
+  tags = {
+    Name = "github-actions-oidc"
+  }
+}
+```
+The `url` is the URL of the Github Identity Provider
+
+`client_id_list` tells AWS to only accept tokens where the audience (`aud`) = `sts.amazonaws.com` - the Security Token Service [designed to issue temporary credentials for users](https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html).
+
+
+The Trust policy (WHO can assume the role) is then written:
 
 ```
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${var.github_repo}:*"
+        }
+      }
+    }]
+  })
+```
+This role permits the specific repo - in this case Mazharul419/ECS-Forge to request temporary security credentials.
+
 The `Version` number is standard policy version when writing AWS policies.
 
-`Principal` is the identity being granted access - in this case `ecs-tasks.amazonaws.com`.
+`Principal` is the identity being granted access - in this case the Github Actions OIDC provider defined earlier.
 
 `Action` is the specific Security Token Service (STS) which exchanges the principals identity for temporary credentials.
 
 `Effect = "Allow"` grants the trust.
 
 `jsonencode` is a HCL function required since AWS expects policy to be written in JSON string - not terraform code.
-
 
 #### Resources
 
@@ -1608,8 +1680,6 @@ The `Version` number is standard policy version when writing AWS policies.
 | ---- | ----------- |
 | <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | ARN of the GitHub OIDC provider |
 | <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the GitHub Actions IAM role |
-
-Why OIDC Instead of Access Keys?
 
 
 ## Live Environment Configurations
