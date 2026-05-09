@@ -33,10 +33,6 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Generate Provider Block](#generate-provider-block)
   - [Terraform Modules](#terraform-modules)
     - [VPC Module](#vpc-module)
-      - [Resources](#resources)
-      - [Inputs](#inputs)
-      - [Outputs](#outputs)
-      - [Code](#code)
       - [aws\_availability\_zones data block](#aws_availability_zones-data-block)
       - [VPC resource block](#vpc-resource-block)
       - [Public Subnet resource block](#public-subnet-resource-block)
@@ -46,6 +42,9 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Private Subnets resource block](#private-subnets-resource-block)
       - [Private Route Table resource block](#private-route-table-resource-block)
       - [Private Route Tables Association resource block](#private-route-tables-association-resource-block)
+      - [Resources](#resources)
+      - [Inputs](#inputs)
+      - [Outputs](#outputs)
     - [Security Groups Module](#security-groups-module)
       - [Resources](#resources-1)
       - [Inputs](#inputs-1)
@@ -81,6 +80,8 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       - [Inputs](#inputs-8)
       - [Outputs](#outputs-8)
   - [Live Environment Configurations](#live-environment-configurations)
+    - [Dev Environment](#dev-environment)
+    - [Prod Environment](#prod-environment)
   - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
     - [CI - Build and Scan Docker image](#ci---build-and-scan-docker-image)
     - [](#)
@@ -720,127 +721,6 @@ Within the provider as a whole - `default_tags` [applies default tags to resourc
 
 This module defines the Virtual Private Cloud (VPC) resource in AWS:
 
-#### Resources
-
-| Name | Type |
-| ---- | ---- |
-| [aws_internet_gateway.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
-| [aws_route_table.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-| [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
-
-#### Inputs
-
-| Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
-| <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Number of AZs to use | `number` | `2` | no |
-| <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in VPC | `bool` | `true` | no |
-| <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in VPC | `bool` | `true` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
-| <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.3.0/24",<br/>  "10.0.4.0/24"<br/>]</pre> | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
-| <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
-
-#### Outputs
-
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_private_route_table_ids"></a> [private\_route\_table\_ids](#output\_private\_route\_table\_ids) | n/a |
-| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
-| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | n/a |
-| <a name="output_vpc_cidr"></a> [vpc\_cidr](#output\_vpc\_cidr) | n/a |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
-
-
-#### Code
-
-```
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-resource "aws_vpc" "main" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true  # Required for VPC endpoints
-  enable_dns_support   = true  # Required for VPC endpoints
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-vpc"
-  }
-}
-
-resource "aws_subnet" "public" {
-  count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB
-    tags = {
-        Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
-    }
-}
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-public-rt"
-  }
-}
-
-resource "aws_route_table_association" "public" {
-  count          = length(var.public_subnet_cidrs)
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
-  }
-}
-
-resource "aws_route_table" "private" {
-  count  = length(var.private_subnet_cidrs)
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
-  }
-}
-
-resource "aws_route_table_association" "private" {
-  count          = length(var.private_subnet_cidrs)
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
-}
-```
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
-
 #### aws_availability_zones data block
 
 ```
@@ -1083,18 +963,50 @@ resource "aws_route_table_association" "private" {
 
 Associations are for each of the 2 subnets.
 
+[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc/main.tf)
+
+#### Resources
+
+| Name | Type |
+| ---- | ---- |
+| [aws_internet_gateway.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
+| [aws_route_table.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+| [aws_route_table_association.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_route_table_association.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+| [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_subnet.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+| [aws_vpc.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+| [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
+
+#### Inputs
+
+| Name | Description | Type | Default | Required |
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
+| <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Number of AZs to use | `number` | `2` | no |
+| <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in VPC | `bool` | `true` | no |
+| <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in VPC | `bool` | `true` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+| <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.3.0/24",<br/>  "10.0.4.0/24"<br/>]</pre> | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+| <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
+
+#### Outputs
+
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_private_route_table_ids"></a> [private\_route\_table\_ids](#output\_private\_route\_table\_ids) | n/a |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
+| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | n/a |
+| <a name="output_vpc_cidr"></a> [vpc\_cidr](#output\_vpc\_cidr) | n/a |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
+
+
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-> In the interest of keeping this straightforward - the obvious details will be skipped from here on out.
-
 ### Security Groups Module
-
-Structure:
-1. What this module does (2-3 sentences)
-2. Architecture context — how it fits into the wider system
-3. Key decisions — only the non-obvious ones
-4. Inputs/outputs — terraform-docs generated
-5. Links — to the source code on GitHub, and to relevant ADRs
 
 This module outlines the security groups required for this project - these act as the firewall for resources, [controlling the traffic allowed to reach and leave the resources it is associated with](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html).
 
@@ -1683,16 +1595,54 @@ The `Version` number is standard policy version when writing AWS policies.
 
 
 ## Live Environment Configurations
-Dev Environment (env.hcl)
-Prod Environment (env.hcl)
-Terragrunt Dependencies
 
+Both environments are configured in mostly the same way, and their environment specific configs are in the `env.hcl` files:
+
+### Dev Environment
+```
+locals {
+  environment   = "dev"
+  subdomain     = "dev"
+
+  # Network
+  vpc_cidr             = "10.0.0.0/16"
+  public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
+
+  # ECS
+  task_cpu    = "256" # 0.25 vCPU
+  task_memory = "512" # 512 MB RAM
+  desired_count = 1 # Single task (save money)
+}
+```
+
+### Prod Environment
+```
+locals {
+  environment   = "prod"
+  subdomain     = "prod"
+
+  # Network (different CIDR)
+  vpc_cidr             = "10.1.0.0/16"
+  public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
+  private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]
+
+  # ECS (more resources)
+  task_cpu    = "512"
+  task_memory = "1024"
+  desired_count = 2 # Two tasks (redundancy)
+}
+```
+
+The subdomain is different since they have to have different urls.
+
+The VPC CIDRs are different since originally I wanted the possibility of these two environments communicating with each other - however that is deprecated.
+
+There is only 1 desired task with minimal CPU and memory to save money here.
 
 ## CI/CD Pipelines (GitHub Actions)
 Key CI/CD Sections
 ### CI - Build and Scan Docker image
-
-
 
 Grype image scanning
 

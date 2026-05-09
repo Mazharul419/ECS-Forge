@@ -1,7 +1,6 @@
 locals {
   environment   = "dev"
   subdomain     = "dev"
-  desired_count = 1 # Single task (save money)
 
   # Network
   vpc_cidr             = "10.0.0.0/16"
@@ -11,4 +10,5 @@ locals {
   # ECS
   task_cpu    = "256" # 0.25 vCPU
   task_memory = "512" # 512 MB RAM
+  desired_count = 1 # Single task (save money)
 }
