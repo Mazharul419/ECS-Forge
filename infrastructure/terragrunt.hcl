@@ -6,36 +6,36 @@ locals {
   domain_name  = "mazharulislam.dev"
   account_id   = get_aws_account_id()
   bucket_name  = "${local.project_name}-terraform-state-${local.account_id}-${local.aws_region}"
-  environment = element(split("/", path_relative_to_include()), 1)
+  environment  = element(split("/", path_relative_to_include()), 1)
 }
 
 remote_state {
   backend = "s3"
-  
+
   generate = {
     path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
   }
-  
+
   config = {
     bucket       = local.bucket_name
     key          = "${path_relative_to_include()}/terraform.tfstate"
     region       = local.aws_region
     use_lockfile = true
     s3_bucket_tags = {
-    Project     = "${local.project_name}"
-    ManagedBy   = "Bootstrap"
-    Purpose     = "TF State Storage"
-    Repository  = "github.com/Mazharul419/ECS-Forge"
+      Project    = "${local.project_name}"
+      ManagedBy  = "Bootstrap"
+      Purpose    = "TF State Storage"
+      Repository = "github.com/Mazharul419/ECS-Forge"
     }
   }
-  }
+}
 
 
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
-  
+
   contents = <<EOF
 terraform {
   required_version = "~> 1.14" # Allows 1.14.0, 1.14.1 etc. but not 1.15 - no major/minor suprises

@@ -1,6 +1,6 @@
 locals {
-  environment   = "prod"
-  subdomain     = "prod"
+  environment = "prod"
+  subdomain   = "prod"
 
   # Network (different CIDR)
   vpc_cidr             = "10.1.0.0/16"
@@ -8,7 +8,7 @@ locals {
   private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]
 
   # ECS (more resources)
-  task_cpu    = "512"
-  task_memory = "1024"
+  task_cpu      = "512"
+  task_memory   = "1024"
   desired_count = 2 # Two tasks (redundancy)
 }

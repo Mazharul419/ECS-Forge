@@ -83,7 +83,8 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Dev Environment](#dev-environment)
     - [Prod Environment](#prod-environment)
   - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
-    - [CI - Build and Scan Docker image](#ci---build-and-scan-docker-image)
+    - [CI - Build and Scan Docker image (Automatic)](#ci---build-and-scan-docker-image-automatic)
+    - [Lint Terragrunt Code (Automatic)](#lint-terragrunt-code-automatic)
     - [](#)
   - [Dockerfile Explained](#dockerfile-explained)
   - [Bootstrap Script](#bootstrap-script)
@@ -1641,12 +1642,14 @@ The VPC CIDRs are different since originally I wanted the possibility of these t
 There is only 1 desired task with minimal CPU and memory to save money here.
 
 ## CI/CD Pipelines (GitHub Actions)
-Key CI/CD Sections
-### CI - Build and Scan Docker image
 
-Grype image scanning
+There are several CI/CD pipelines in this project which serve a different purpose. They use Github Actions, since it offers the most flexibility for pipelines - allowing me to define approval, linting, and security gates, so I can set up complex workflows.
 
-Doing basic Grype image scanning can see two criticals:
+### CI - Build and Scan Docker image (Automatic)
+
+This pipeline runs automatically from any code being pushed to main. It builds the application from source into a Dockerfile, and then uses Grype image scanning to scan for vulnerabilities. It fails upon critical.
+
+Originally, when performing the basic Grype image scanning there are 8 issues related to the code-server version, 2 which are critical:
 
 ```
 code-server         0.0.0                         4.99.4             npm   GHSA-p483-wpfp-42cj  High        0.3% (55th)    0.3    
@@ -1752,15 +1755,47 @@ fail-on-severity: "critical"
 
 Any new Critical vulnerabilities that arise will fail the workflow though.
 
+### Lint Terragrunt Code (Automatic)
+
+This pipeline runs automatically upon push to main, and upon changes to the /infrastructure directory.
+
+It initialises, validates, and formats the Terragrunt code - and will fail if any of these gates do. This ensures, only compatible, clean IaC passes through.
+
+Unfortunately, I could not use TFLint since it is not compatible with Terragrunt.
+
 ### 
-OIDC Permissions
-AWS Authentication
-Task Definition Update
 
 
 ## Dockerfile Explained
 Stage 1: Build
 Stage 2: Runtime
+
+I encountered an issue late into this Dockerising process:
+
+`RUN VERSION=4.112.0 npm run build:vscode`
+
+ This line threw the following error:
+ 
+ ```
+4102.3 [10:34:30] Error: Request https://api.github.com/repos/microsoft/vscode-js-profile-visualizer/releases/tags/v1.0.10 failed with status code: 403 (you may be rate limited)
+4102.3     at fetchUrl (file:///usr/src/code-server/lib/vscode/build/lib/fetch.ts:91:10)
+4102.3     at process.processTicksAndRejections (node:internal/process
+ ```
+Here the VSCode building process pulls from VSCode on GitHub and hitting the unauthenticated API rate limit (capped at 60 requests per hour), I had to find a way to get AUTHENTICATED from Github to do this, which raises the limit to 5000 requests per hour.
+
+To resolve this I requested a Github PAT token - which I exported as an environment variable locally.
+
+But how does Docker access this secret during build without it appearing anywhere in the image?
+
+This is where Docker build secrets comes in - [a way to pass secrets to your applications build process in Docker](https://docs.docker.com/build/building/secrets/) WITHOUT keeping them within the image.
+
+There are several ways to do this - I used a [Secret mount](https://docs.docker.com/build/building/secrets/#secret-mounts) by first calling it within the Dockerfile:
+
+Then the secret is passed in at run time, with it's id being the same as the local Environment Variable name:
+
+`docker build -t codetest0905 --mount=type=secret,id=GITHUB_TOKEN, env=GITHUB_TOKEN .`
+
+This successfully built a functioning image overcoming the API rate limit!
 
 ## Bootstrap Script
 The 9 Steps

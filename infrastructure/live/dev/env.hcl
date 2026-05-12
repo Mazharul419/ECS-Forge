@@ -1,6 +1,6 @@
 locals {
-  environment   = "dev"
-  subdomain     = "dev"
+  environment = "dev"
+  subdomain   = "dev"
 
   # Network
   vpc_cidr             = "10.0.0.0/16"
@@ -8,7 +8,7 @@ locals {
   private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
 
   # ECS
-  task_cpu    = "256" # 0.25 vCPU
-  task_memory = "512" # 512 MB RAM
-  desired_count = 1 # Single task (save money)
+  task_cpu      = "256" # 0.25 vCPU
+  task_memory   = "512" # 512 MB RAM
+  desired_count = 1     # Single task (save money)
 }
