@@ -87,9 +87,15 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Lint Terragrunt Code (Automatic)](#lint-terragrunt-code-automatic)
     - [](#)
   - [Dockerfile Explained](#dockerfile-explained)
+    - [Stage 2: Runtime](#stage-2-runtime)
   - [Bootstrap Script](#bootstrap-script)
+    - [Terraform state](#terraform-state)
+    - [OIDC and ECR](#oidc-and-ecr)
+    - [Docker image push](#docker-image-push)
   - [Supporting Configuration Files	37](#supporting-configuration-files37)
-  - [Glossary of Terms](#glossary-of-terms)
+    - [.env.example](#envexample)
+    - [.gitignore](#gitignore)
+    - [.dockerignore](#dockerignore)
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
@@ -494,6 +500,7 @@ The block includes:
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ### Remote State Block
+<a id="Remote State Block"></a>
 
 ```
 remote_state {
@@ -539,7 +546,7 @@ The `generate` block requests terragrunt to [generate a `backend.tf` in the work
 >
 >AD: S3 native state-locking
 >
->IMPROVEMENT 03/04: Consider using remote state bootstrap offered by Terragrunt https://docs.terragrunt.com/features/units/state-backend/)
+>AD: Remote state [bootstrap offered by Terragrunt](https://docs.terragrunt.com/features/units/state-backend/)
 
 ### Generate Provider Block
 
@@ -1649,6 +1656,10 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
 This pipeline runs automatically from any code being pushed to main. It builds the application from source into a Dockerfile, and then uses Grype image scanning to scan for vulnerabilities. It fails upon critical.
 
+The Dockerfile DOES NOT copy the local files.
+
+
+
 Originally, when performing the basic Grype image scanning there are 8 issues related to the code-server version, 2 which are critical:
 
 ```
@@ -1768,47 +1779,120 @@ Unfortunately, I could not use TFLint since it is not compatible with Terragrunt
 
 ## Dockerfile Explained
 Stage 1: Build
-Stage 2: Runtime
 
 I encountered an issue late into this Dockerising process:
 
 `RUN VERSION=4.112.0 npm run build:vscode`
 
- This line threw the following error:
- 
- ```
-4102.3 [10:34:30] Error: Request https://api.github.com/repos/microsoft/vscode-js-profile-visualizer/releases/tags/v1.0.10 failed with status code: 403 (you may be rate limited)
-4102.3     at fetchUrl (file:///usr/src/code-server/lib/vscode/build/lib/fetch.ts:91:10)
-4102.3     at process.processTicksAndRejections (node:internal/process
- ```
-Here the VSCode building process pulls from VSCode on GitHub and hitting the unauthenticated API rate limit (capped at 60 requests per hour), I had to find a way to get AUTHENTICATED from Github to do this, which raises the limit to 5000 requests per hour.
+The reason being is because due to VSCode being a submodule of code-server - which causes MANY issues for git tracking:
 
-To resolve this I requested a Github PAT token - which I exported as an environment variable locally.
+1. Submodule pointer files: Cloning locally created app/.git as a real directory, but when added as a git submodule to ECS-Forge it became a pointer file referencing .git/modules/app/ on your local machine — a path that doesn't exist in CI or Docker
+2. Git context missing in container: COPY app/ ./ brings source files but not valid git metadata, so VS Code's postinstall.ts script failed when trying to run git config inside lib/vscode
+3. Git wouldn't commit the files: When I cloned code-server directly into app/, git saw it as a nested repository and silently ignored its contents
+4. Quilt series file — reverting to COPY approach broke quilt patch application
 
-But how does Docker access this secret during build without it appearing anywhere in the image?
+A LOT of time (MANY weeks) went into attempting to copy from local repo to build this out, however it was not possible.
 
-This is where Docker build secrets comes in - [a way to pass secrets to your applications build process in Docker](https://docs.docker.com/build/building/secrets/) WITHOUT keeping them within the image.
+The simplest option which worked both locally and in CI is to copy the specific commit of the code-server repo via git clone.
 
-There are several ways to do this - I used a [Secret mount](https://docs.docker.com/build/building/secrets/#secret-mounts) by first calling it within the Dockerfile:
+Various dependencies are required here - using npm install [as recommended by Docs](https://coder.com/docs/code-server/CONTRIBUTING#build):
 
-Then the secret is passed in at run time, with it's id being the same as the local Environment Variable name:
 
-`docker build -t codetest0905 --mount=type=secret,id=GITHUB_TOKEN, env=GITHUB_TOKEN .`
+`build-essential`: C/C++ compilers and build tools
 
-This successfully built a functioning image overcoming the API rate limit!
+`g++ python-is-python3` Needed to compile native add-on modules for node.js
+
+`libx11-dev`: X11 graphics library headers (For Electron UI)
+
+`libxkbfile-dev`: X11 Keyboard mapping support
+
+`libsecret-1-dev`: Secure storage for credentials
+
+`libkrb5-dev`: Kerberos development headers
+
+`git git-lfs`: Clone VSCode submodule
+Handles files that are too large to be stored - ensures large binary files are pulled correctly when cloning
+
+`quilt`: Applies code-server patches to upstream VSCode
+
+`rsync`: Linux utility for syncing files
+
+`jq`: Command-line json processor
+
+`gnupg`: GNU Privacy Guard - Used to sign commits and verify signatures when updating submodules
+
+`libgcc1`: c++ library used in standalone release runtime
+
+### Stage 2: Runtime
+
+Runtime is in an Ubuntu base image with commit sha referenced.
+
+`curl` is installed in order for the container to run a healthcheck, and is further needed for the ECS task healthcheck.
+
+Previously I tried using a distroless image to run this, however due to code-server spawning a shell as part of the application this does not work.
+
+Since I ran `KEEP_MODULES=1` with `npm run release` code-server bundles node and the code-server entry script together.
+
+A healthcheck is present which performs a check every 30 seconds, and after 3x 10 second retries will count as a timeout. A grace period of 5 seconds is allowance for the container start-up.
+
+A `coder` non root user is assigned  (This is a predefined non-root user as part of the application build).
+
+`node` is used to run the application, however both this and the entrypoint needed to be found.
+
+I used a container image scanning tool known as [Dive](https://github.com/wagoodman/dive) to assist me in identifying where these are.
 
 ## Bootstrap Script
-The 9 Steps
-Usage
 
+This script is required to bootstrap several resource in order to avoid circular dependencies.
+
+Environment variables are firstly defined.
+
+### Terraform state
+
+1. When creating cloud infrastructure in Terraform the remote state is best held somewhere secure.
+
+2. That place is typically a cloud environment - the same place infra is being deployed. 
+
+3. However to deploy this you'd want to use Terraform since you've been using that to deploy the rest of your infra. 
+
+4. But since any infra defined in Terraform requires state this is a circular dependency.
+
+To break out of this, you need to create and store the state OUTSIDE of Terraform management first, then use this state when creating the rest of the infra.
+
+To do this part of my bootstrap script creates this outside, however I don't rely on direct API calls to AWS. Terragrunt manages this via the `terragrunt init --backend-bootstrap` command passed through - which creates the S3 remote state as defined in this block: <a href="#Remote State Block">Remote State Block</a>
+
+### OIDC and ECR
+
+In order for CI to deploy infrastructure, the OIDC role that gives it the Trust and permissions to do so needs to be created beforehand - therefore this needs to be created beforehand.
+
+Also, for the ECS service to be deployed it needs a pre-existing image. Since in my infrastructure configuration it would exist in ECR, ECR must be created prior beforehand too.
+
+Since state is already created through Terragrunt initialisation - these two resources can be created under terraform management. A `global` folder with the modules and relevant resource blocks are defined.
+
+As part of the bootstrap script these are applied:
+
+```
+echo "Applying OIDC configuration..."
+terragrunt apply --auto-approve
+```
+
+### Docker image push
+
+The script will detect whether you have a Docker image with the same name locally and provide the date/time this was made, before giving you the decision to push this to ECR.
+
+If not, it will automatically perform the docker build command.
+
+This can be improved by giving the user a choice whether they want to even proceeed with the local build, or skip - since CI can handle this.
 
 ## Supporting Configuration Files	37
-.env.example
-.gitignore Highlights
-.dockerignore
+### .env.example
+Used for configuring secrets
 
-## Glossary of Terms
+### .gitignore
+Used to ignore sensitive files like .env
 
+### .dockerignore
+Used to ignore files not neccessary for Dockerfile
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
