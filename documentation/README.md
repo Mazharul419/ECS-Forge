@@ -92,6 +92,7 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
     - [Terraform state](#terraform-state)
     - [OIDC and ECR](#oidc-and-ecr)
     - [Docker image push](#docker-image-push)
+    - [Destroy script](#destroy-script)
   - [Supporting Configuration Files	37](#supporting-configuration-files37)
     - [.env.example](#envexample)
     - [.gitignore](#gitignore)
@@ -1883,6 +1884,14 @@ The script will detect whether you have a Docker image with the same name locall
 If not, it will automatically perform the docker build command.
 
 This can be improved by giving the user a choice whether they want to even proceeed with the local build, or skip - since CI can handle this.
+
+### Destroy script
+
+Destroy script is just bootstrap reversed.
+
+Terragrunt destroys OIDC and ECR first via `terragrunt destroy` and a `for` loop iterating over these modules using file locations. 
+
+Then the remote S3 backend is deleted - since it is a versioned bucket, regular aws s3 api calls CANNOT delete this. `boto3` - a python package for interacting with AWS directly was used as a workaround.
 
 ## Supporting Configuration Files	37
 ### .env.example
