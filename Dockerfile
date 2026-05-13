@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 COPY app/ ./
 WORKDIR /usr/src/app
-RUN git submodule update --init
 RUN quilt push -a
 RUN npm install
 RUN npm run build
