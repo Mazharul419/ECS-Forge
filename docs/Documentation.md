@@ -93,6 +93,51 @@ Thin wrapper over Terraform designed to:
 ├── LICENSE.txt
 ├── Dockerfile
 ├── app/
+├── docs/
+├── infrastructure/
+│   ├── backend.tf
+│   ├── provider.tf
+│   ├── bootstrap/
+│   ├── live/
+│   ├── modules/
+│   └── terragrunt.hcl
+└── other/
+    ├── grype/
+    ├── policies/
+    └── screenshots/
+```
+<p align="right">(<a href="#docs-top">back to top</a>)</p>
+
+### Structure Explained
+####  README, LICENSE, Dockerfile, app/
+=== "README, LICENSE.txt"
+
+    ```
+    ├── README.md
+    ├── LICENSE.txt
+    ```
+
+
+
+    The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
+
+    The LICENSE.txt file specifies how the repo can be distributed and used.
+
+
+
+=== "Dockerfile, app/"
+
+    ```
+    ├── Dockerfile
+    ├── app/  
+    ``` 
+    According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
+
+    The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
+
+#### docs/
+
+```
 ├── docs
 │   ├── Architectural_Decisions.md
 │   ├── Documentation.md
@@ -100,278 +145,139 @@ Thin wrapper over Terraform designed to:
 │   ├── image-2.png
 │   ├── image.png
 │   └── index.md
-├── infrastructure
-│   ├── backend.tf
-│   ├── bootstrap
-│   │   ├── ReadMe.md
-│   │   ├── bootstrap.sh
-│   │   └── destroy.sh
-│   ├── live
-│   │   ├── _env
-│   │   │   └── common.hcl
-│   │   ├── dev
-│   │   │   ├── acm
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── alb
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── dns
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── ecs
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── env.hcl
-│   │   │   ├── security-groups
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── vpc
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── vpc-endpoints
-│   │   │       └── terragrunt.hcl
-│   │   ├── global
-│   │   │   ├── ecr
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── oidc
-│   │   │       └── terragrunt.hcl
-│   │   └── prod
-│   │       ├── acm
-│   │       │   └── terragrunt.hcl
-│   │       ├── alb
-│   │       │   └── terragrunt.hcl
-│   │       ├── dns
-│   │       │   └── terragrunt.hcl
-│   │       ├── ecs
-│   │       │   └── terragrunt.hcl
-│   │       ├── env.hcl
-│   │       ├── security-groups
-│   │       │   └── terragrunt.hcl
-│   │       ├── vpc
-│   │       │   └── terragrunt.hcl
-│   │       └── vpc-endpoints
-│   │           └── terragrunt.hcl
-│   ├── modules
-│   │   ├── acm
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── alb
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── dns
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── ecr
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── ecs
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── oidc
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── security-groups
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   ├── vpc
-│   │   │   ├── main.tf
-│   │   │   ├── outputs.tf
-│   │   │   └── variables.tf
-│   │   └── vpc-endpoints
-│   │       ├── main.tf
-│   │       ├── outputs.tf
-│   │       └── variables.tf
-│   ├── provider.tf
-│   └── terragrunt.hcl
-└── other
-    ├── grype
-    │   ├── grypejson.txt
-    │   ├── package.json
-    │   ├── vscodepackage.json
-    │   └── vuln.txt
-    ├── policies
-    │   ├── both.tf
-    │   ├── createpolicy.tf
-    │   └── deletepolicy.tf
-    └── screenshots
-        ├── build_push.png
-        ├── deploy_environment.png
-        ├── deploy_image.png
-        ├── destroy environment.png
-        ├── devenv.png
-        ├── lint_terragrunt_code.PNG
-        ├── prodenv.png
-        └── vul_report.PNG
 ```
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-### Structure Explained
+This directory contains the documentation related to this project.
 
-=== "Dockerfile, LICENSE, README, /app"
+The `Architectural_Decisions.md` file outlines the key architectural decisions made in the project. This file communicates IMPACT as opposed to details.
+
+The `Documentation.md` file (this file) is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project. Aims to communicate details so someone new to this project can be onboarded smoothly.
+
+#### Infrastructure directory
+
+```
+└── infrastructure
+    ├── backend.tf
+    ├── provider.tf
+    ├── graph.png
+    ├── terragrunt.hcl
+    ├── bootstrap/
+    ├── live/
+    └── modules/
+
+```
+This directory contains EVERYTHING related to the infrastructure required to deploy the application. 
+
+**Due to Terragrunt tooling the file structure is VERY DIFFERENT from Terraform.**
+
+=== "Terragrunt root files and graph.png"
+    ```
+    └── infrastructure
+        ├── backend.tf
+        ├── provider.tf
+        ├── graph.png
+        ├── terragrunt.hcl
+    ```
+
+    Terragrunt automatically generates `backend.tf` and `provider.tf` files to tell terraform where the S3 bucket is stored and which providers to use respectively.
+    
+    They are generated every run and can be safely deleted.
+
+    These are generated using the `terragrunt.hcl` file found at root - this file defines the backend and provider files AT ROOT
+    
+    And INJECTS these files in the relevant environment at runtime - avoiding error-prone and cumbersome manual repetition of modules.
+
+    Updating configurations becomes a breeze. 
+
+    `graph.png` is a cylic-something DAG graph made from the explicit dependency ordering - it is a visual representation of module dependencies in both environments. This was generated from the `terragrunt graph-dependencies` command:
+    <br><br>
+    
+    ![alt text](graph.png)
+
+=== "bootstrap/ directory"
+    ```
+      .
+    ├── bootstrap.sh
+    └── destroy.sh
+    ```
+    Contains the scripts for bootstrapping and destroying the foundational infrastructure for avoiding various circular dependencies - covered in [bootstrap script section](#bootstrap-script)
+
+=== "live/ directory"
 
     ```
-    ├── Dockerfile
-    ├── LICENSE
+    .
+    ├── _env
+    │   └── common.hcl
+    ├── global
+    │   ├── ecr/
+    │   └── oidc/
+    ├── dev
+    │   ├── acm/
+    │   ├── alb/
+    │   ├── dns/
+    │   ├── ecs/
+    │   ├── security-groups/
+    │   ├── vpc/
+    │   ├── vpc-endpoints/ 
+    │   └── env.hcl
+    └── prod
+        ├── acm/
+        ├── alb/
+        ├── dns/
+        ├── ecs/
+        ├── security-groups/
+        ├── vpc/
+        ├── vpc-endpoints/ 
+        └── env.hcl
+    ```
+
+    This directory contains the live Terragrunt configuration of the:
+
+    - global infra: Modules that bootstrap the dev and prod environments
+    - dev infra: Modules for development enviromnent
+    - prod infra: Modules for production environment
+    - _env/common.hcl: This a file containing common values between the above directories
+
+    To understand how this works:
+    1. The directories in each environment contain specific configurations [single instances of infrastructure](https://docs.terragrunt.com/getting-started/terminology#unit) managed by Terragrunt - represented by the presence of terragrunt.hcl files which define the [Terragrunt configuration](https://docs.terragrunt.com/reference/hcl/)
+
+    This the HOW and WHERE - which environment, values, and where to store state.
+
+=== "modules/ directory"
+
+    ```
+    .
+    ├── acm/
+    ├── alb/
+    ├── dns/
+    ├── ecr/
+    ├── ecs/
+    ├── oidc/
+    ├── security-groups/
+    ├── vpc/
+    └── vpc-endpoints/
+    ```
+
+    This contains the reusable terraform modules required for deploying infrastructure. The units call the variables at runtime. This is the WHAT - the actual AWS resources.
+
+    Each resource contains several files:
+
+    ```
+    .
     ├── README.md
-    ├── app
+    ├── main.tf
+    ├── outputs.tf
+    └── variables.tf
     ```
+    `README.md` is a README file containing generated `terraform-docs` documentation on the module - see [Terraform modules section](#terraform-modules)
+    `main.tf` defines the resource blocks to create infrastructure
+    `outputs.tf`
+    `variables.tf`
 
-    According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
 
-    The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
 
-    The LICENSE.txt file specifies how the repo can be distributed and used.
 
-    The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
 
-=== "/docs directory"
-
-    ```
-    ├── docs
-    │   ├── Architectural_Decisions.md
-    │   ├── Documentation.md
-    │   ├── image-1.png
-    │   ├── image-2.png
-    │   ├── image.png
-    │   └── index.md
-    ```
-
-    The decisions.md file in the architecture directory outline the key architectural decisions made in the project. This file communicates IMPACT as opposed to details in the next file.
-
-    The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
-
-=== "Infrastructure directory"
-
-    ```
-    └── infrastructure
-        ├── backend.tf
-        ├── bootstrap
-        ├── live
-        ├── modules
-        ├── provider.tf
-        └── terragrunt.hcl
-    ```
-    This directory contains EVERYTHING related to the infrastructure required to deploy the application.
-
-=== "Backend, provider.tf files"
-    ```
-    └── infrastructure
-        ├── backend.tf
-        .
-        .
-        .
-        ├── provider.tf
-    ```
-
-    Terragrunt automatically generates these files in order to tell terraform where the S3 bucket is stored and which providers to use respectively. They are generated every run and can be safely deleted.
-
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
-
-##### Infrastructure - live directory
-
-```
-│   ├── live
-│   │   ├── _env
-│   │   │   └── common.hcl
-│   │   ├── dev
-│   │   │   ├── acm
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── alb
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── dns
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── ecs
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── env.hcl
-│   │   │   ├── security-groups
-│   │   │   │   └── terragrunt.hcl
-│   │   │   ├── vpc
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── vpc-endpoints
-│   │   │       └── terragrunt.hcl
-│   │   ├── global
-│   │   │   ├── ecr
-│   │   │   │   └── terragrunt.hcl
-│   │   │   └── oidc
-│   │   │       └── terragrunt.hcl
-│   │   └── prod
-│   │       ├── acm
-│   │       │   └── terragrunt.hcl
-│   │       ├── alb
-│   │       │   └── terragrunt.hcl
-│   │       ├── dns
-│   │       │   └── terragrunt.hcl
-│   │       ├── ecs
-│   │       │   └── terragrunt.hcl
-│   │       ├── env.hcl
-│   │       ├── security-groups
-│   │       │   └── terragrunt.hcl
-│   │       ├── vpc
-│   │       │   └── terragrunt.hcl
-│   │       └── vpc-endpoints
-│   │           └── terragrunt.hcl
-```
-
-This directory contains the live Terragrunt configuration of the:
-
-- global infra: Modules that bootstrap the dev and prod environments
-- dev infra: Modules for development enviromnent
-- prod infra: Modules for production environment
-- common.hcl: This a file containing common values between the above directories
-
-These directories contain further directories representing [single instances of infrastructure](https://docs.terragrunt.com/getting-started/terminology#unit) managed by Terragrunt - represented by the presence of terragrunt.hcl files which define the [Terragrunt configuration](https://docs.terragrunt.com/reference/hcl/)
-
-This the HOW and WHERE - which environment, values, and where to store state.
-
-##### Infrastructure - modules directory
-
-```
-│   ├── infrastructure
-    │   .
-    │   .
-    │   .
-    │   ├── modules
-    │   │   ├── acm
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── alb
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── dns
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── ecr
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── ecs
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── oidc
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── security-groups
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   ├── vpc
-    │   │   │   ├── main.tf
-    │   │   │   ├── outputs.tf
-    │   │   │   └── variables.tf
-    │   │   └── vpc-endpoints
-    │   │       ├── main.tf
-    │   │       ├── outputs.tf
-    │   │       └── variables.tf
-```
-
-This contains the reusable terraform modules required for deploying infrastructure. The units call the variables at runtime. This is the WHAT - the actual AWS resources.
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
