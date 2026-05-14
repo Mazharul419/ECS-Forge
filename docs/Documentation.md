@@ -4,105 +4,9 @@
 
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
-## Table of Contents
+## Traffic Flow Explained
 
-- [Introduction](#introduction)
-  - [Table of Contents](#table-of-contents)
-- [Traffic Flow Explained](#traffic-flow-explained)
-  - [Access to website](#access-to-website)
-- [Load Balancer and remaining](#load-balancer-and-remaining)
-- [Technology Stack Explained](#technology-stack-explained)
-  - [Infrastructure as Code Tools](#infrastructure-as-code-tools)
-  - [Terraform](#terraform)
-  - [Terragrunt](#terragrunt)
-  - [AWS Services Used](#aws-services-used)
-- [Project Structure](#project-structure)
-  - [Overview](#overview)
-  - [Structure Explained](#structure-explained)
-    - [Dockerfile, LICENSE, README.md, and App](#dockerfile-license-readmemd-and-app)
-    - [Architecture - decisions.md file and Documentation - README.md file](#architecture---decisionsmd-file-and-documentation---readmemd-file)
-    - [Infrastructure directory](#infrastructure-directory)
-      - [Backend, provider.tf files](#backend-providertf-files)
-      - [Infrastructure - live directory](#infrastructure---live-directory)
-      - [Infrastructure - modules directory](#infrastructure---modules-directory)
-- [DEEP DIVE](#deep-dive)
-  - [Root Configuration (terragrunt.hcl)](#root-configuration-terragrunthcl)
-    - [File Location](#file-location)
-    - [Locals Block](#locals-block)
-    - [Remote State Block](#remote-state-block)
-    - [Generate Provider Block](#generate-provider-block)
-  - [Terraform Modules](#terraform-modules)
-    - [VPC Module](#vpc-module)
-      - [aws\_availability\_zones data block](#aws_availability_zones-data-block)
-      - [VPC resource block](#vpc-resource-block)
-      - [Public Subnet resource block](#public-subnet-resource-block)
-      - [Internet Gateway resource block](#internet-gateway-resource-block)
-      - [Public Route Table resource block](#public-route-table-resource-block)
-      - [Public Route Table Association resource block](#public-route-table-association-resource-block)
-      - [Private Subnets resource block](#private-subnets-resource-block)
-      - [Private Route Table resource block](#private-route-table-resource-block)
-      - [Private Route Tables Association resource block](#private-route-tables-association-resource-block)
-      - [Resources](#resources)
-      - [Inputs](#inputs)
-      - [Outputs](#outputs)
-    - [Security Groups Module](#security-groups-module)
-      - [Resources](#resources-1)
-      - [Inputs](#inputs-1)
-      - [Outputs](#outputs-1)
-    - [VPC Endpoints Module](#vpc-endpoints-module)
-      - [Resources](#resources-2)
-      - [Inputs](#inputs-2)
-      - [Outputs](#outputs-2)
-    - [AWS Certificate Manager (ACM) Module](#aws-certificate-manager-acm-module)
-      - [Resources](#resources-3)
-      - [Inputs](#inputs-3)
-      - [Outputs](#outputs-3)
-    - [Application Load Balancer (ALB) Module](#application-load-balancer-alb-module)
-      - [Resources](#resources-4)
-      - [Inputs](#inputs-4)
-      - [Outputs](#outputs-4)
-    - [DNS Module](#dns-module)
-      - [Resources](#resources-5)
-      - [Inputs](#inputs-5)
-      - [Outputs](#outputs-5)
-    - [Elastic Container Service (ECS) Module](#elastic-container-service-ecs-module)
-      - [Resources](#resources-6)
-      - [Inputs](#inputs-6)
-      - [Outputs](#outputs-6)
-    - [ECR Module](#ecr-module)
-      - [Resources](#resources-7)
-      - [Inputs](#inputs-7)
-      - [Outputs](#outputs-7)
-    - [OIDC Module](#oidc-module)
-      - [Diagram](#diagram)
-      - [Code explanation](#code-explanation)
-      - [Resources](#resources-8)
-      - [Inputs](#inputs-8)
-      - [Outputs](#outputs-8)
-  - [Live Environment Configurations](#live-environment-configurations)
-    - [Dev Environment](#dev-environment)
-    - [Prod Environment](#prod-environment)
-  - [CI/CD Pipelines (GitHub Actions)](#cicd-pipelines-github-actions)
-    - [CI - Build and Scan Docker image (Automatic)](#ci---build-and-scan-docker-image-automatic)
-    - [Lint Terragrunt Code (Automatic)](#lint-terragrunt-code-automatic)
-    - [](#)
-  - [Dockerfile Explained](#dockerfile-explained)
-    - [Stage 2: Runtime](#stage-2-runtime)
-  - [Bootstrap Script](#bootstrap-script)
-    - [Terraform state](#terraform-state)
-    - [OIDC and ECR](#oidc-and-ecr)
-    - [Docker image push](#docker-image-push)
-    - [Destroy script](#destroy-script)
-  - [Supporting Configuration Files	37](#supporting-configuration-files37)
-    - [.env.example](#envexample)
-    - [.gitignore](#gitignore)
-    - [.dockerignore](#dockerignore)
-
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
-
-# Traffic Flow Explained
-
-## Access to website
+### Access to website
 
 ![alt text](image.png)
 
@@ -145,28 +49,28 @@ Assuming there is no cache stored at any stage - [the following](https://www.clo
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-# Load Balancer and remaining
+### Load Balancer and remaining
 
 Use this section to explain flow from ALB to tasks in private subnet
 
 Also explain how applications can access AWS services privately
 
 
-# Technology Stack Explained
+## Technology Stack Explained
 
-## Infrastructure as Code Tools
+### Infrastructure as Code Tools
 
-## Terraform
+### Terraform
 
-## Terragrunt
+### Terragrunt
 
-## AWS Services Used
+### AWS Services Used
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-# Project Structure
+## Project Structure
 
-## Overview
+### Overview
 
 ```
 .
@@ -270,9 +174,9 @@ Also explain how applications can access AWS services privately
 ```
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-## Structure Explained
+### Structure Explained
 
-### Dockerfile, LICENSE, README.md, and App
+#### Dockerfile, LICENSE, README.md, and App
 
 ```
 ├── Dockerfile
@@ -289,7 +193,7 @@ The LICENSE.txt file specifies how the repo can be distributed and used.
 
 The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
 
-### Architecture - decisions.md file and Documentation - README.md file
+#### Architecture - decisions.md file and Documentation - README.md file
 
 ```
 ├── architecture
@@ -302,7 +206,7 @@ The decisions.md file in the architecture directory outline the key architectura
 
 The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
-### Infrastructure directory
+#### Infrastructure directory
 
 ```
 └── infrastructure
@@ -315,7 +219,7 @@ The README.md file (this file) in the documentation directory is documentation f
 ```
 This directory contains EVERYTHING related to the infrastructure required to deploy the application.
 
-#### Backend, provider.tf files
+##### Backend, provider.tf files
 ```
 └── infrastructure
     ├── backend.tf
@@ -329,7 +233,7 @@ Terragrunt automatically generates these files in order to tell terraform where 
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-#### Infrastructure - live directory
+##### Infrastructure - live directory
 
 ```
 │   ├── live
@@ -385,7 +289,7 @@ These directories contain further directories representing [single instances of 
 
 This the HOW and WHERE - which environment, values, and where to store state.
 
-#### Infrastructure - modules directory
+##### Infrastructure - modules directory
 
 ```
 │   ├── infrastructure
@@ -435,10 +339,10 @@ This contains the reusable terraform modules required for deploying infrastructu
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-# DEEP DIVE
-## Root Configuration (terragrunt.hcl)
+## DEEP DIVE
+### Root Configuration (terragrunt.hcl)
 
-### File Location
+#### File Location
 
 ```
 └── infrastructure
@@ -451,7 +355,7 @@ This contains the reusable terraform modules required for deploying infrastructu
 ```
 This file is located within the root of my infrastructure directory (directly inside it - not any further in). This is because it holds configuration common to ALL modules.
 
-### Locals Block
+#### Locals Block
 
 ```
 locals {
@@ -500,7 +404,7 @@ The block includes:
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-### Remote State Block
+#### Remote State Block
 <a id="Remote State Block"></a>
 
 ```
@@ -549,7 +453,7 @@ The `generate` block requests terragrunt to [generate a `backend.tf` in the work
 >
 >AD: Remote state [bootstrap offered by Terragrunt](https://docs.terragrunt.com/features/units/state-backend/)
 
-### Generate Provider Block
+#### Generate Provider Block
 
 ```
 generate "provider" {
@@ -725,12 +629,12 @@ Within the provider as a whole - `default_tags` [applies default tags to resourc
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-## Terraform Modules
-### VPC Module
+### Terraform Modules
+#### VPC Module
 
 This module defines the Virtual Private Cloud (VPC) resource in AWS:
 
-#### aws_availability_zones data block
+##### aws_availability_zones data block
 
 ```
 data "aws_availability_zones" "available" {
@@ -751,7 +655,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
 
 
-#### VPC resource block
+##### VPC resource block
 
 ```
 resource "aws_vpc" "main" {
@@ -801,7 +705,8 @@ As part of the FinOps strategy, individual resource-level tags are provided with
 
 > AD: Resource-level tagging - this identifies resources when looking at cost explorer - it also had the excellent effect of helping me leftover resources when setting up destroy workflows in Terragrunt and CD.
 
-#### Public Subnet resource block
+##### Public Subnet resource block
+
 ```
 resource "aws_subnet" "public" {
   count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
@@ -874,7 +779,7 @@ The tagging follows the convention of project name, environment, resource name -
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-#### Internet Gateway resource block
+##### Internet Gateway resource block
 ```
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
@@ -886,7 +791,7 @@ resource "aws_internet_gateway" "main" {
 
 This block attaches an Internet Gateway to the VPC.
 
-#### Public Route Table resource block
+##### Public Route Table resource block
 
 ```
 resource "aws_route_table" "public" {
@@ -908,7 +813,7 @@ The `cidr_block` is the destination range of IP addresses where I want traffic t
 
 The `gateway_id` is the gateway where through destination traffic is sent - here it is the internet gateway.
 
-#### Public Route Table Association resource block
+##### Public Route Table Association resource block
 
 The above route table is attached to the public subnet using:
 ```
@@ -922,7 +827,7 @@ For `count` since there are 2 public subnets, they are attached to each - result
 
 The `subnet_id` and `route_table_id` must be specified for these to be attached.
 
-#### Private Subnets resource block
+##### Private Subnets resource block
 
 ```
 resource "aws_subnet" "private" {
@@ -947,7 +852,8 @@ infrastructure/live/prod/env.hcl:
 
 `  private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]`
 
-#### Private Route Table resource block
+##### Private Route Table resource block
+
 ```
 resource "aws_route_table" "private" {
   count  = length(var.private_subnet_cidrs)
@@ -961,7 +867,8 @@ resource "aws_route_table" "private" {
 
 This has no access to the internet, since it is private by design - therefore there is no target associated with this.
 
-#### Private Route Tables Association resource block
+##### Private Route Tables Association resource block
+
 ```
 resource "aws_route_table_association" "private" {
   count          = length(var.private_subnet_cidrs)
@@ -974,7 +881,7 @@ Associations are for each of the 2 subnets.
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -988,7 +895,7 @@ Associations are for each of the 2 subnets.
 | [aws_vpc.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1002,7 +909,7 @@ Associations are for each of the 2 subnets.
 | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1015,7 +922,7 @@ Associations are for each of the 2 subnets.
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-### Security Groups Module
+#### Security Groups Module
 
 This module outlines the security groups required for this project - these act as the firewall for resources, [controlling the traffic allowed to reach and leave the resources it is associated with](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html).
 
@@ -1037,7 +944,7 @@ For the S3 gateway endpoint, a seperate security group rule must be defined that
 
 [Link to code](https://github.com/Mazharul419/ECS-Forge/tree/main/infrastructure/modules/security-groups/main.tf)  
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1045,7 +952,7 @@ For the S3 gateway endpoint, a seperate security group rule must be defined that
 | [aws_security_group.ecs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group.vpc_endpoints](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1055,7 +962,7 @@ For the S3 gateway endpoint, a seperate security group rule must be defined that
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block of the VPC | `string` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1063,7 +970,7 @@ For the S3 gateway endpoint, a seperate security group rule must be defined that
 | <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | ID of the ECS security group |
 | <a name="output_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#output\_vpc\_endpoints\_security\_group\_id) | ID of the VPC endpoints security group |
 
-### VPC Endpoints Module
+#### VPC Endpoints Module
 
 This resource provides the private connectivity required for the application to reach various AWS services.
 
@@ -1095,7 +1002,7 @@ This also has the effect of having faster resource communication since there are
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc-endpoints/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1104,7 +1011,7 @@ This also has the effect of having faster resource communication since there are
 | [aws_vpc_endpoint.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 | [aws_vpc_endpoint.s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1116,7 +1023,7 @@ This also has the effect of having faster resource communication since there are
 | <a name="input_vpc_endpoints_security_group_id"></a> [vpc\_endpoints\_security\_group\_id](#input\_vpc\_endpoints\_security\_group\_id) | The security group ID to associate with the interface VPC endpoints. | `string` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | The ID of the VPC where the endpoints will be created. | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1125,7 +1032,7 @@ This also has the effect of having faster resource communication since there are
 | <a name="output_logs_endpoint_id"></a> [logs\_endpoint\_id](#output\_logs\_endpoint\_id) | ID of the CloudWatch Logs interface endpoint |
 | <a name="output_s3_endpoint_id"></a> [s3\_endpoint\_id](#output\_s3\_endpoint\_id) | ID of the S3 gateway endpoint |
 
-### AWS Certificate Manager (ACM) Module
+#### AWS Certificate Manager (ACM) Module
 
 This module is for provisioning the ACM certificate required for end-to-end TLS.
 
@@ -1246,7 +1153,7 @@ resource "aws_acm_certificate_validation" "main" {
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/acm/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1254,7 +1161,7 @@ resource "aws_acm_certificate_validation" "main" {
 | [aws_acm_certificate_validation.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate_validation) | resource |
 | [cloudflare_dns_record.cert_validation](https://registry.terraform.io/providers/hashicorp/cloudflare/latest/docs/resources/dns_record) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1264,7 +1171,7 @@ resource "aws_acm_certificate_validation" "main" {
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
 | <a name="input_subdomain"></a> [subdomain](#input\_subdomain) | Subdomain for the certificate | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1273,7 +1180,7 @@ resource "aws_acm_certificate_validation" "main" {
 | <a name="output_certificate_status"></a> [certificate\_status](#output\_certificate\_status) | Status of the certificate |
 | <a name="output_validation_record_fqdns"></a> [validation\_record\_fqdns](#output\_validation\_record\_fqdns) | FQDNs of the validation records |
 
-### Application Load Balancer (ALB) Module
+#### Application Load Balancer (ALB) Module
 
 This module sets up the [Application Load Balancer (ALB)](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) - a single point of contact which forwards requests to the registered, healthy targets (EC2 instances) within the defined target group - distributing incoming traffic across multiple availability zones.
 
@@ -1289,7 +1196,7 @@ It also has a health check - which checks if containers are healthy on the `/hea
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/alb/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1298,7 +1205,7 @@ It also has a health check - which checks if containers are healthy on the `/hea
 | [aws_lb_listener.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_lb_target_group.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1310,7 +1217,7 @@ It also has a health check - which checks if containers are healthy on the `/hea
 | <a name="input_public_subnet_ids"></a> [public\_subnet\_ids](#input\_public\_subnet\_ids) | IDs of public subnets | `list(string)` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | ID of the VPC | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1318,19 +1225,19 @@ It also has a health check - which checks if containers are healthy on the `/hea
 | <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the ALB |
 | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the target group |
 
-### DNS Module
+#### DNS Module
 
 This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev. and prod. mazharulislam.dev to the application load balancer DNS name. The DNS record can't be created until the ALB DNS name is known, hence the depends-on.
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/dns/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
 | [cloudflare_dns_record.app](https://registry.terraform.io/providers/hashicorp/cloudflare/latest/docs/resources/dns_record) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1341,7 +1248,7 @@ This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev.
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
 | <a name="input_subdomain"></a> [subdomain](#input\_subdomain) | Subdomain to create (e.g., tm-dev) | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1349,7 +1256,7 @@ This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev.
 | <a name="output_fqdn"></a> [fqdn](#output\_fqdn) | Fully qualified domain name |
 | <a name="output_record_id"></a> [record\_id](#output\_record\_id) | Cloudflare record ID |
 
-### Elastic Container Service (ECS) Module
+#### Elastic Container Service (ECS) Module
 
 This module sets up the Elastic Container Service (ECS) from AWS, a service to manage containers at scale.
 
@@ -1406,7 +1313,7 @@ A `lifecycle` block is also included here for the task definition, since the con
 
 [Link to code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/ecs/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1417,7 +1324,7 @@ A `lifecycle` block is also included here for the task definition, since the con
 | [aws_iam_role.ecs_task_execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.ecs_task_execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1433,7 +1340,7 @@ A `lifecycle` block is also included here for the task definition, since the con
 | <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | CPU units for the task | `string` | n/a | yes |
 | <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | Memory for the task in MB | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1442,7 +1349,7 @@ A `lifecycle` block is also included here for the task definition, since the con
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | Name of the ECS service |
 | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ARN of the task definition |
 
-### ECR Module
+#### ECR Module
 
 This module creates an ECR registry for storing container the sha-tagged images provisioned via CI. 
 
@@ -1460,7 +1367,7 @@ This module is bootstrapped since the ECS service needs to reference an already 
 
 [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/ecr/main.tf)
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1468,7 +1375,7 @@ This module is bootstrapped since the ECS service needs to reference an already 
 | [aws_ecr_repository.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1476,7 +1383,7 @@ This module is bootstrapped since the ECS service needs to reference an already 
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
 | <a name="input_repository_name"></a> [repository\_name](#input\_repository\_name) | ECR repository name | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1484,13 +1391,13 @@ This module is bootstrapped since the ECS service needs to reference an already 
 | <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name) | ECR repository name |
 | <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url) | ECR repository URL |
 
-### OIDC Module
+#### OIDC Module
 
 This module provisions the OpenID Connect (OIDC) IAM role with policies for ECR access, deploying new images to ECS, and deploy/destroy infrastructure. These map to the relevant Github Actions workflows which interact with AWS services.
 
 OIDC is a way for these workflows to authenticate with AWS by using short-term credentials [prevents Github Actions workflows from using long-term credentials](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_oidc.html) - and if configured correctly, map to an AWS role that ONLY has permissions needed to perform the task required.
 
-#### Diagram
+##### Diagram
 
 The way it works is shown in this diagram (taken from [Github Docs](https://docs.github.com/en/actions/concepts/security/openid-connect)):
 
@@ -1520,7 +1427,7 @@ It will then check the trust policy to further scope this to this project repo o
 
 STS issues temporary credentials with specific permissions defined in the policy.
 
-#### Code explanation
+##### Code explanation
 
 The `aws_iam_openid_connect_provider` resource block is first defined - this registers the external Github IdP service that [supports the OpenID Connect standard](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html):
 
@@ -1574,7 +1481,7 @@ The `Version` number is standard policy version when writing AWS policies.
 
 `jsonencode` is a HCL function required since AWS expects policy to be written in JSON string - not terraform code.
 
-#### Resources
+##### Resources
 
 | Name | Type |
 | ---- | ---- |
@@ -1585,7 +1492,7 @@ The `Version` number is standard policy version when writing AWS policies.
 | [aws_iam_role_policy.github_actions_terragrunt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 
-#### Inputs
+##### Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
@@ -1595,7 +1502,7 @@ The `Version` number is standard policy version when writing AWS policies.
 | <a name="input_github_repo"></a> [github\_repo](#input\_github\_repo) | GitHub repository name | `string` | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
 
-#### Outputs
+##### Outputs
 
 | Name | Description |
 | ---- | ----------- |
@@ -1603,11 +1510,11 @@ The `Version` number is standard policy version when writing AWS policies.
 | <a name="output_role_arn"></a> [role\_arn](#output\_role\_arn) | ARN of the GitHub Actions IAM role |
 
 
-## Live Environment Configurations
+### Live Environment Configurations
 
 Both environments are configured in mostly the same way, and their environment specific configs are in the `env.hcl` files:
 
-### Dev Environment
+#### Dev Environment
 ```
 locals {
   environment   = "dev"
@@ -1625,7 +1532,7 @@ locals {
 }
 ```
 
-### Prod Environment
+#### Prod Environment
 ```
 locals {
   environment   = "prod"
@@ -1649,11 +1556,11 @@ The VPC CIDRs are different since originally I wanted the possibility of these t
 
 There is only 1 desired task with minimal CPU and memory to save money here.
 
-## CI/CD Pipelines (GitHub Actions)
+### CI/CD Pipelines (GitHub Actions)
 
 There are several CI/CD pipelines in this project which serve a different purpose. They use Github Actions, since it offers the most flexibility for pipelines - allowing me to define approval, linting, and security gates, so I can set up complex workflows.
 
-### CI - Build and Scan Docker image (Automatic)
+#### CI - Build and Scan Docker image (Automatic)
 
 This pipeline runs automatically from any code being pushed to main. It builds the application from source into a Dockerfile, and then uses Grype image scanning to scan for vulnerabilities. It fails upon critical.
 
@@ -1767,7 +1674,7 @@ fail-on-severity: "critical"
 
 Any new Critical vulnerabilities that arise will fail the workflow though.
 
-### Lint Terragrunt Code (Automatic)
+#### Lint Terragrunt Code (Automatic)
 
 This pipeline runs automatically upon push to main, and upon changes to the /infrastructure directory.
 
@@ -1775,10 +1682,8 @@ It initialises, validates, and formats the Terragrunt code - and will fail if an
 
 Unfortunately, I could not use TFLint since it is not compatible with Terragrunt.
 
-### 
 
-
-## Dockerfile Explained
+### Dockerfile Explained
 Stage 1: Build
 
 I encountered an issue late into this Dockerising process:
@@ -1824,7 +1729,7 @@ Handles files that are too large to be stored - ensures large binary files are p
 
 `libgcc1`: c++ library used in standalone release runtime
 
-### Stage 2: Runtime
+#### Stage 2: Runtime
 
 Runtime is in an Ubuntu base image with commit sha referenced.
 
@@ -1842,13 +1747,13 @@ A `coder` non root user is assigned  (This is a predefined non-root user as part
 
 I used a container image scanning tool known as [Dive](https://github.com/wagoodman/dive) to assist me in identifying where these are.
 
-## Bootstrap Script
+### Bootstrap Script
 
 This script is required to bootstrap several resource in order to avoid circular dependencies.
 
 Environment variables are firstly defined.
 
-### Terraform state
+#### Terraform state
 
 1. When creating cloud infrastructure in Terraform the remote state is best held somewhere secure.
 
@@ -1862,7 +1767,7 @@ To break out of this, you need to create and store the state OUTSIDE of Terrafor
 
 To do this part of my bootstrap script creates this outside, however I don't rely on direct API calls to AWS. Terragrunt manages this via the `terragrunt init --backend-bootstrap` command passed through - which creates the S3 remote state as defined in this block: <a href="#Remote State Block">Remote State Block</a>
 
-### OIDC and ECR
+#### OIDC and ECR
 
 In order for CI to deploy infrastructure, the OIDC role that gives it the Trust and permissions to do so needs to be created beforehand - therefore this needs to be created beforehand.
 
@@ -1877,7 +1782,7 @@ echo "Applying OIDC configuration..."
 terragrunt apply --auto-approve
 ```
 
-### Docker image push
+#### Docker image push
 
 The script will detect whether you have a Docker image with the same name locally and provide the date/time this was made, before giving you the decision to push this to ECR.
 
@@ -1885,7 +1790,7 @@ If not, it will automatically perform the docker build command.
 
 This can be improved by giving the user a choice whether they want to even proceeed with the local build, or skip - since CI can handle this.
 
-### Destroy script
+#### Destroy script
 
 Destroy script is just bootstrap reversed.
 
@@ -1893,14 +1798,14 @@ Terragrunt destroys OIDC and ECR first via `terragrunt destroy` and a `for` loop
 
 Then the remote S3 backend is deleted - since it is a versioned bucket, regular aws s3 api calls CANNOT delete this. `boto3` - a python package for interacting with AWS directly was used as a workaround.
 
-## Supporting Configuration Files	37
-### .env.example
+### Supporting Configuration Files	37
+#### .env.example
 Used for configuring secrets
 
-### .gitignore
+#### .gitignore
 Used to ignore sensitive files like .env
 
-### .dockerignore
+#### .dockerignore
 Used to ignore files not neccessary for Dockerfile
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
