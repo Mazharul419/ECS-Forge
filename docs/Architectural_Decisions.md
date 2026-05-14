@@ -1,4 +1,4 @@
-# ECS-Forge: Key Architectural Decisions
+# Key Architectural Decisions
 This doc summarises the key architectural decisions made in this project:
 
 | Decision | Choice Made | Alternative | Rationale |
