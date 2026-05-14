@@ -600,258 +600,278 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
 === "Explanation"
 
-This is the Virtual Private Cloud (VPC) resource block - it provides a VPC resource.
+    This is the Virtual Private Cloud (VPC) resource block - it provides a VPC resource.
 
-> A VPC is a [logically isolated virtual network](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) offered by AWS.
+    > A VPC is a [logically isolated virtual network](https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html) offered by AWS.
 
-`cidr_block` is the Classless Inter-Domain Routing (CIDR) block for the VPC - and is made into a variable (variabilised) since this differs between environments.
+    `cidr_block` is the Classless Inter-Domain Routing (CIDR) block for the VPC - and is made into a variable (variabilised) since this differs between environments.
 
-> Internet Protocol Version 4 (IPv4) was used to define this block - IPv4 is a set of communication rules that [provides data exchange over the internet](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/)
-> 
-> Improvement: Given the expansion of devices and limited addressing offered by this protocol and the improved features such as [autoconfiguration, improved routing and security,](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/) it is worth considering IPv6 or dual-stack (IPv6 with backwards IPv4 compatibility) for the next project!
-> 
-> At the time of planning, I provided scope for VPC-to-VPC connectivity. This has not materialised as of writing so may be removed. This is interesting to explore however.
+    > Internet Protocol Version 4 (IPv4) was used to define this block - IPv4 is a set of communication rules that [provides data exchange over the internet](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/)
+    > 
+    > Improvement: Given the expansion of devices and limited addressing offered by this protocol and the improved features such as [autoconfiguration, improved routing and security,](https://aws.amazon.com/compare/the-difference-between-ipv4-and-ipv6/) it is worth considering IPv6 or dual-stack (IPv6 with backwards IPv4 compatibility) for the next project!
+    > 
+    > At the time of planning, I provided scope for VPC-to-VPC connectivity. This has not materialised as of writing so may be removed. This is interesting to explore however.
 
-Terragrunt injects these values through the enivironment specific configuration `env.hcl` located in the respective directory folder `/dev` `/prod`:
+    Terragrunt injects these values through the enivironment specific configuration `env.hcl` located in the respective directory folder `/dev` `/prod`:
 
-infrastructure/live/dev/env.hcl:
+    infrastructure/live/dev/env.hcl:
 
-`  vpc_cidr             = "10.0.0.0/16"`
+    `  vpc_cidr             = "10.0.0.0/16"`
 
-infrastructure/live/prod/env.hcl:
+    infrastructure/live/prod/env.hcl:
 
-`  vpc_cidr             = "10.1.0.0/16"`
-
-
-`enable_dns_hostnames` and `enable_dns_support` are both set to `true` - this is due to downstream resource known as an interface endpoint [requiring these options](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html#prerequisites-interface-endpoints).
+    `  vpc_cidr             = "10.1.0.0/16"`
 
 
-```
-  tags = {
-    Name = "${var.project_name}-${var.environment}-vpc"
-  }
-```
+    `enable_dns_hostnames` and `enable_dns_support` are both set to `true` - this is due to downstream resource known as an interface endpoint [requiring these options](https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html#prerequisites-interface-endpoints).
 
-As part of the FinOps strategy, individual resource-level tags are provided with project name and environment preceding the resource name.
 
-> AD: Resource-level tagging - this identifies resources when looking at cost explorer - it also had the excellent effect of helping me leftover resources when setting up destroy workflows in Terragrunt and CD.
+    ```
+      tags = {
+        Name = "${var.project_name}-${var.environment}-vpc"
+      }
+    ```
 
-##### Public Subnet resource block
+    As part of the FinOps strategy, individual resource-level tags are provided with project name and environment preceding the resource name.
 
-```
-resource "aws_subnet" "public" {
-  count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidrs[count.index]
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
-  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB
-    tags = {
-        Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+    > AD: Resource-level tagging - this identifies resources when looking at cost explorer - it also had the excellent effect of helping me leftover resources when setting up destroy workflows in Terragrunt and CD.
+
+    ##### Public Subnet resource block
+
+    ```
+    resource "aws_subnet" "public" {
+      count                   = length(var.public_subnet_cidrs)  # Creates 2 subnets
+      vpc_id                  = aws_vpc.main.id
+      cidr_block              = var.public_subnet_cidrs[count.index]
+      availability_zone       = data.aws_availability_zones.available.names[count.index]
+      map_public_ip_on_launch = true  # Instances get public IPs - required for ALB
+        tags = {
+            Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+        }
     }
-}
-```
+    ```
 
-This is a resource block that creates 2 public subnets.
+    This is a resource block that creates 2 public subnets.
 
-`count` i.e., number of subnets to create, provides the length of the variabilised CIDR block of the public subnet.
+    `count` i.e., number of subnets to create, provides the length of the variabilised CIDR block of the public subnet.
 
-> `count` is an example of a meta-argument (a class of arguments that [defines how terraform controls and creates infrastructure](https://developer.hashicorp.com/terraform/language/meta-arguments)).
+    > `count` is an example of a meta-argument (a class of arguments that [defines how terraform controls and creates infrastructure](https://developer.hashicorp.com/terraform/language/meta-arguments)).
 
-The CIDR blocks are defined in the Terragrunt configuration for `/dev` and `/prod` environments:
+    The CIDR blocks are defined in the Terragrunt configuration for `/dev` and `/prod` environments:
 
-infrastructure/live/dev/env.hcl:
+    infrastructure/live/dev/env.hcl:
 
-`public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]`
+    `public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]`
 
-infrastructure/live/prod/env.hcl:
+    infrastructure/live/prod/env.hcl:
 
-`public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]`
+    `public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]`
 
-2 CIDRs are defined for each subnet, to make the environments highly available in the event of an AZ outage. Also, a load balancer is used in the project and therefore [requires at least 2 availability zones to function](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#subnets-load-balancer).
+    2 CIDRs are defined for each subnet, to make the environments highly available in the event of an AZ outage. Also, a load balancer is used in the project and therefore [requires at least 2 availability zones to function](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#subnets-load-balancer).
 
-> AD: 2 AZs for public subnets - high availability. This is designing for fault isolation too - both of which fall under the [Reliability pillar of the AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_fault_isolation_multiaz_region_system.html).
+    > AD: 2 AZs for public subnets - high availability. This is designing for fault isolation too - both of which fall under the [Reliability pillar of the AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_fault_isolation_multiaz_region_system.html).
 
-In Hashicorp Configuration Langauge (HCl) - the CIDRs for both environments are in a data type [known as a list](https://developer.hashicorp.com/terraform/language/expressions/types#lists-tuples).
+    In Hashicorp Configuration Langauge (HCl) - the CIDRs for both environments are in a data type [known as a list](https://developer.hashicorp.com/terraform/language/expressions/types#lists-tuples).
 
-The `length` function [determines the number of elements](https://developer.hashicorp.com/terraform/language/functions/length) i.e., the number of CIDR blocks, defining the public subnet.
+    The `length` function [determines the number of elements](https://developer.hashicorp.com/terraform/language/functions/length) i.e., the number of CIDR blocks, defining the public subnet.
 
-It is reverse thinking here - the env.hcl defines the subnet CIDR, and the module uses this information to create the actual resource!
+    It is reverse thinking here - the env.hcl defines the subnet CIDR, and the module uses this information to create the actual resource!
 
-`vpc_id` - [required](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#vpc_id-1) since the subnet is depends on the VPC resource.
+    `vpc_id` - [required](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#vpc_id-1) since the subnet is depends on the VPC resource.
 
-`cidr_block` - defines the CIDR blocks to be allocated to each subnet, variabilised and pulled from the previous environment configuration values the `count.index` argument - which pulls the index, and combined with the square brackets `[]`, pulls the associated subnet CIDR.
+    `cidr_block` - defines the CIDR blocks to be allocated to each subnet, variabilised and pulled from the previous environment configuration values the `count.index` argument - which pulls the index, and combined with the square brackets `[]`, pulls the associated subnet CIDR.
 
-`  availability_zone       = data.aws_availability_zones.available.names[count.index]`
+    `  availability_zone       = data.aws_availability_zones.available.names[count.index]`
 
-This is an argument requiring to specify the availability zones for the public subnet - since these are defined earlier in the data block - it is simply referenced here, with `[count.index]` pulling all the availability zones accessible by the AWS account in the eu-west-2 region in the "available" state.
+    This is an argument requiring to specify the availability zones for the public subnet - since these are defined earlier in the data block - it is simply referenced here, with `[count.index]` pulling all the availability zones accessible by the AWS account in the eu-west-2 region in the "available" state.
 
-> This argument may pull multiple AZs, however for the resource as a whole it is limited to 2 due to the earlier variabilised `count` argument, where both environments have two hardcoded subnet CIDRs
+    > This argument may pull multiple AZs, however for the resource as a whole it is limited to 2 due to the earlier variabilised `count` argument, where both environments have two hardcoded subnet CIDRs
 
-`  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB`
+    `  map_public_ip_on_launch = true  # Instances get public IPs - required for ALB`
 
-This specifies that instances launched in this subnet get [automatically assigned a public IP address](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet.html#map_public_ip_on_launch-1) - which was originally for the Application Load Balancer.
+    This specifies that instances launched in this subnet get [automatically assigned a public IP address](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet.html#map_public_ip_on_launch-1) - which was originally for the Application Load Balancer.
 
-[However, ALB automatically gets assigned public IPv4 addresses from EC2's public IPv4 address pool](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#w2aab7c21) - which remain fully managed by the Application Load Balancer service. It is therefore not needed.
+    [However, ALB automatically gets assigned public IPv4 addresses from EC2's public IPv4 address pool](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html#w2aab7c21) - which remain fully managed by the Application Load Balancer service. It is therefore not needed.
 
-```
-    tags = {
-        Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+    ```
+        tags = {
+            Name = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
+        }
+    ```
+
+    The tagging follows the convention of project name, environment, resource name - however to specify which subnet the `count.index` argument is used, with + 1 added to identify it i.e., subnet 1, and subnet 2.
+
+    > For the public subnet (and any resources within) to connect to the internet - 3 things are required:
+    >- An Internet Gateway present in it's VPC
+    >- A route table attached to the VPC, with all destination IPs targeting the Internet Gateway
+    >- A route table association connecting the subnet to the route table
+    >
+    > These are explained below:
+
+    <p align="right">(<a href="#docs-top">back to top</a>)</p>
+
+    ##### Internet Gateway resource block
+    ```
+    resource "aws_internet_gateway" "main" {
+      vpc_id = aws_vpc.main.id
+      tags = {
+        Name = "${var.project_name}-${var.environment}-igw"
+      }
     }
-```
+    ```
 
-The tagging follows the convention of project name, environment, resource name - however to specify which subnet the `count.index` argument is used, with + 1 added to identify it i.e., subnet 1, and subnet 2.
+    This block attaches an Internet Gateway to the VPC.
 
-> For the public subnet (and any resources within) to connect to the internet - 3 things are required:
->- An Internet Gateway present in it's VPC
->- A route table attached to the VPC, with all destination IPs targeting the Internet Gateway
->- A route table association connecting the subnet to the route table
->
-> These are explained below:
+    ##### Public Route Table resource block
 
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
+    ```
+    resource "aws_route_table" "public" {
+      vpc_id = aws_vpc.main.id
 
-##### Internet Gateway resource block
-```
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-  tags = {
-    Name = "${var.project_name}-${var.environment}-igw"
-  }
-}
-```
+      route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.main.id
+      }
 
-This block attaches an Internet Gateway to the VPC.
+      tags = {
+        Name = "${var.project_name}-${var.environment}-public-rt"
+      }
+    }
+    ```
+    This resource block creates the public route table which [defines how traffic is routed within the VPC](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html).
 
-##### Public Route Table resource block
+    The `cidr_block` is the destination range of IP addresses where I want traffic to go - by specifying `0.0.0.0/0` this means ALL IP addresses.
 
-```
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
+    The `gateway_id` is the gateway where through destination traffic is sent - here it is the internet gateway.
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
+    ##### Public Route Table Association resource block
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-public-rt"
-  }
-}
-```
-This resource block creates the public route table which [defines how traffic is routed within the VPC](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html).
+    The above route table is attached to the public subnet using:
+    ```
+    resource "aws_route_table_association" "public" {
+      count          = length(var.public_subnet_cidrs)
+      subnet_id      = aws_subnet.public[count.index].id
+      route_table_id = aws_route_table.public.id
+    }
+    ```
+    For `count` since there are 2 public subnets, they are attached to each - resulting in 2 associations.
 
-The `cidr_block` is the destination range of IP addresses where I want traffic to go - by specifying `0.0.0.0/0` this means ALL IP addresses.
+    The `subnet_id` and `route_table_id` must be specified for these to be attached.
 
-The `gateway_id` is the gateway where through destination traffic is sent - here it is the internet gateway.
+    ##### Private Subnets resource block
 
-##### Public Route Table Association resource block
+    ```
+    resource "aws_subnet" "private" {
+      count             = length(var.private_subnet_cidrs)
+      vpc_id            = aws_vpc.main.id
+      cidr_block        = var.private_subnet_cidrs[count.index]
+      availability_zone = data.aws_availability_zones.available.names[count.index]
 
-The above route table is attached to the public subnet using:
-```
-resource "aws_route_table_association" "public" {
-  count          = length(var.public_subnet_cidrs)
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-```
-For `count` since there are 2 public subnets, they are attached to each - resulting in 2 associations.
+      tags = {
+        Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
+      }
+    }
+    ```
 
-The `subnet_id` and `route_table_id` must be specified for these to be attached.
+    This is set up the exact same way as the public subnet resource block above - the only difference is that it references the `private_subnet_cidrs` variable instead - which has different values:
 
-##### Private Subnets resource block
+    infrastructure/live/dev/env.hcl:
 
-```
-resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+    `  private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]`
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
-  }
-}
-```
+    infrastructure/live/prod/env.hcl:
 
-This is set up the exact same way as the public subnet resource block above - the only difference is that it references the `private_subnet_cidrs` variable instead - which has different values:
+    `  private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]`
 
-infrastructure/live/dev/env.hcl:
+    ##### Private Route Table resource block
 
-`  private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]`
+    ```
+    resource "aws_route_table" "private" {
+      count  = length(var.private_subnet_cidrs)
+      vpc_id = aws_vpc.main.id
 
-infrastructure/live/prod/env.hcl:
+      tags = {
+        Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
+      }
+    }
+    ```
 
-`  private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]`
+    This has no access to the internet, since it is private by design - therefore there is no target associated with this.
 
-##### Private Route Table resource block
+    ##### Private Route Tables Association resource block
 
-```
-resource "aws_route_table" "private" {
-  count  = length(var.private_subnet_cidrs)
-  vpc_id = aws_vpc.main.id
+    ```
+    resource "aws_route_table_association" "private" {
+      count          = length(var.private_subnet_cidrs)
+      subnet_id      = aws_subnet.private[count.index].id
+      route_table_id = aws_route_table.private[count.index].id
+    }
+    ```
 
-  tags = {
-    Name = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
-  }
-}
-```
+    Associations are for each of the 2 subnets.
 
-This has no access to the internet, since it is private by design - therefore there is no target associated with this.
+    [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc/main.tf)
 
-##### Private Route Tables Association resource block
+=== "Description"
+    ![alt text](graph.png)
+    ##### Resources
 
-```
-resource "aws_route_table_association" "private" {
-  count          = length(var.private_subnet_cidrs)
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
-}
-```
+    | Name | Type |
+    | ---- | ---- |
+    | [aws_internet_gateway.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
+    | [aws_route_table.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+    | [aws_route_table.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
+    | [aws_route_table_association.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+    | [aws_route_table_association.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
+    | [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+    | [aws_subnet.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
+    | [aws_vpc.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
+    | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 
-Associations are for each of the 2 subnets.
+    ##### Inputs
 
-[Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc/main.tf)
+    | Name | Description | Type | Default | Required |
+    | ---- | ----------- | ---- | ------- | :------: |
+    | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
+    | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Number of AZs to use | `number` | `2` | no |
+    | <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in VPC | `bool` | `true` | no |
+    | <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in VPC | `bool` | `true` | no |
+    | <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
+    | <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.3.0/24",<br/>  "10.0.4.0/24"<br/>]</pre> | no |
+    | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
+    | <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
+    | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
 
-##### Resources
+    ##### Outputs
 
-| Name | Type |
-| ---- | ---- |
-| [aws_internet_gateway.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
-| [aws_route_table.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
-| [aws_route_table_association.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_route_table_association.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
-| [aws_subnet.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_subnet.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
-| [aws_vpc.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc) | resource |
-| [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
+    | Name | Description |
+    | ---- | ----------- |
+    | <a name="output_private_route_table_ids"></a> [private\_route\_table\_ids](#output\_private\_route\_table\_ids) | n/a |
+    | <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
+    | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | n/a |
+    | <a name="output_vpc_cidr"></a> [vpc\_cidr](#output\_vpc\_cidr) | n/a |
+    | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
 
-##### Inputs
+=== "Terraform module"
+    ``` title="infrastructure/modules/vpc/main.tf"
+    --8<-- "infrastructure/modules/vpc/main.tf"
+    ```
 
-| Name | Description | Type | Default | Required |
-| ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | n/a | yes |
-| <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Number of AZs to use | `number` | `2` | no |
-| <a name="input_enable_dns_hostnames"></a> [enable\_dns\_hostnames](#input\_enable\_dns\_hostnames) | Enable DNS hostnames in VPC | `bool` | `true` | no |
-| <a name="input_enable_dns_support"></a> [enable\_dns\_support](#input\_enable\_dns\_support) | Enable DNS support in VPC | `bool` | `true` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment (dev, staging, prod) | `string` | n/a | yes |
-| <a name="input_private_subnet_cidrs"></a> [private\_subnet\_cidrs](#input\_private\_subnet\_cidrs) | CIDR blocks for private subnets | `list(string)` | <pre>[<br/>  "10.0.3.0/24",<br/>  "10.0.4.0/24"<br/>]</pre> | no |
-| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name of the project | `string` | n/a | yes |
-| <a name="input_public_subnet_cidrs"></a> [public\_subnet\_cidrs](#input\_public\_subnet\_cidrs) | CIDR blocks for public subnets | `list(string)` | <pre>[<br/>  "10.0.1.0/24",<br/>  "10.0.2.0/24"<br/>]</pre> | no |
-| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block for VPC | `string` | `"10.0.0.0/16"` | no |
+=== "Terragrunt configs"
 
-##### Outputs
-
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_private_route_table_ids"></a> [private\_route\_table\_ids](#output\_private\_route\_table\_ids) | n/a |
-| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | n/a |
-| <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | n/a |
-| <a name="output_vpc_cidr"></a> [vpc\_cidr](#output\_vpc\_cidr) | n/a |
-| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | n/a |
-
-
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
+    ``` title="dev/vpc/terragrunt.hcl"
+    --8<-- "infrastructure/live/dev/vpc/terragrunt.hcl"
+    ```
+    ``` title="dev/env.hcl"
+    --8<-- "infrastructure/live/dev/env.hcl"
+    ```
+    ``` title="Prod"
+    --8<-- "infrastructure/live/prod/vpc/terragrunt.hcl"
+    ```
+    ``` title="prod/env.hcl"
+    --8<-- "infrastructure/live/prod/env.hcl"
+    ```
+<p align="right">(<a href="#vpc-resource-block">back to top of section</a>)</p>
 
 #### Security Groups Module
 
