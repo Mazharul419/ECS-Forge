@@ -5,66 +5,81 @@
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
 ## Traffic Flow Explained
-
 ### Access to website
+=== "Overview"
 
-![alt text](image.png)
-
-
-To access the live application in production environment, the user types in ***tm.mazharulislam.dev***(or ***tm-dev.mazharulislam.dev*** if accessing development environment).
-
-A DNS (Domain Name System) query takes place - the client sends out tm.mazharulislam.dev and receives the IP address of the public-facing Application Load Balancer (ALB) allowing it to connect to the application hosted in AWS.
-
-![alt text](image-1.png)
+    ![alt text](image.png)
 
 
-Assuming there is no cache stored at any stage - [the following](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) will happen:
+    To access the live application in production environment, the user types in ***tm.mazharulislam.dev***(or ***tm-dev.mazharulislam.dev*** if accessing development environment).
 
-1. User types in "tm.mazharulislam.dev" - the client checks locally to see if the IP address is cached - within it's browser, or the OS
-
-2. The query travels into the Internet and is received by a DNS resolver
-
-3. The root server responds with the address of a Top Level Domain (TLD) DNS server .dev
-
-4. The resolver then makes a request to the TLD server carrying .dev domain which responds with the IP address of the domain’s nameserver mazharulislam.dev
-
-5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) which holds the CNAME record
-
-6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
-
-7. The authoritative name server responds to the DNS resolver with the CNAME record which includes the DNS name of the load balancer*
-
-8. This record is forwarded to the client
-
-9. Client makes a new query for the ALB CNAME
-
-10. The resolver forwards to amazonaws.com domain where the A record is hosted
-
-11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html) is returned to DNS resolver
-
-12. DNS resolver finally returns the IP address of the ALB, allowing the client to send a HTTP request in order to connect to the code-server application
+    A DNS (Domain Name System) query takes place - the client sends out tm.mazharulislam.dev and receives the IP address of the public-facing Application Load Balancer (ALB) allowing it to connect to the application hosted in AWS.
 
 
-*If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
+=== "Detailed Flow"
+
+    ![alt text](image-1.png)
+
+    Assuming there is no cache stored at any stage - [the following](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) will happen:
+
+    1. User types in "tm.mazharulislam.dev" - the client checks locally to see if the IP address is cached - within it's browser, or the OS
+
+    2. The query travels into the Internet and is received by a DNS resolver
+
+    3. The root server responds with the address of a Top Level Domain (TLD) DNS server .dev
+
+    4. The resolver then makes a request to the TLD server carrying .dev domain which responds with the IP address of the domain’s nameserver mazharulislam.dev
+
+    5. The resolver sends a query to the domain’s nameserver - since a subdomain **tm** is present there is an [additional nameserver](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) which holds the CNAME record
+
+    6. The [CNAME](https://developers.cloudflare.com/dns/manage-dns-records/reference/dns-record-types/) is mapped to the Application Load Balancer (ALB) DNS name which is returned to the resolver from the nameserver
+
+    7. The authoritative name server responds to the DNS resolver with the CNAME record which includes the DNS name of the load balancer*
+
+    8. This record is forwarded to the client
+
+    9. Client makes a new query for the ALB CNAME
+
+    10. The resolver forwards to amazonaws.com domain where the A record is hosted
+
+    11. A record containing the [IP addresses of the ALB nodes](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html) is returned to DNS resolver
+
+    12. DNS resolver finally returns the IP address of the ALB, allowing the client to send a HTTP request in order to connect to the code-server application
+
+
+    *If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
+
+### Load Balancer
+Use this section to explain flow from ALB to tasks in private subnet
+
+### ECS Tasks
+Explain how ECS tasks get scheduled and stuff.
+
+### VPC Endpoints
+Also explain how applications can access AWS services privately through VPC Endpoints
+
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
-### Load Balancer and remaining
-
-Use this section to explain flow from ALB to tasks in private subnet
-
-Also explain how applications can access AWS services privately
-
-
 ## Technology Stack Explained
 
-### Infrastructure as Code Tools
+=== "Infrastructure as Code Tools"
 
-### Terraform
+#### AWS
 
-### Terragrunt
+#### Terraform
 
-### AWS Services Used
+Terraform is the most common IAC tool used to deploy infrastructure and works by having several modules:
+
+
+
+#### Terragrunt
+
+Thin wrapper over Terraform designed to:
+
+1. DRY code (Don't Repeat Yourself) through use of provider-level backend.tf and provider.tf modules. EASY to update these files, update once, apply EVERYWHERE.
+2. 
+3. Dependency order handling through `depends_on` block.
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
@@ -74,14 +89,17 @@ Also explain how applications can access AWS services privately
 
 ```
 .
-├── Dockerfile
-├── LICENSE
 ├── README.md
-├── app
-├── architecture
-│   └── decisions.md
-├── documentation
-│   └── README.md
+├── LICENSE.txt
+├── Dockerfile
+├── app/
+├── docs
+│   ├── Architectural_Decisions.md
+│   ├── Documentation.md
+│   ├── image-1.png
+│   ├── image-2.png
+│   ├── image.png
+│   └── index.md
 ├── infrastructure
 │   ├── backend.tf
 │   ├── bootstrap
@@ -168,68 +186,86 @@ Also explain how applications can access AWS services privately
 │   ├── provider.tf
 │   └── terragrunt.hcl
 └── other
-    ├── both.tf
-    ├── createpolicy.tf
-    └── deletepolicy.tf
+    ├── grype
+    │   ├── grypejson.txt
+    │   ├── package.json
+    │   ├── vscodepackage.json
+    │   └── vuln.txt
+    ├── policies
+    │   ├── both.tf
+    │   ├── createpolicy.tf
+    │   └── deletepolicy.tf
+    └── screenshots
+        ├── build_push.png
+        ├── deploy_environment.png
+        ├── deploy_image.png
+        ├── destroy environment.png
+        ├── devenv.png
+        ├── lint_terragrunt_code.PNG
+        ├── prodenv.png
+        └── vul_report.PNG
 ```
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ### Structure Explained
 
-#### Dockerfile, LICENSE, README.md, and App
+=== "Dockerfile, LICENSE, README, /app"
 
-```
-├── Dockerfile
-├── LICENSE
-├── README.md
-├── app
-```
+    ```
+    ├── Dockerfile
+    ├── LICENSE
+    ├── README.md
+    ├── app
+    ```
 
-According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
+    According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
 
-The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
+    The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
 
-The LICENSE.txt file specifies how the repo can be distributed and used.
+    The LICENSE.txt file specifies how the repo can be distributed and used.
 
-The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
+    The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
 
-#### Architecture - decisions.md file and Documentation - README.md file
+=== "/docs directory"
 
-```
-├── architecture
-│   └── decisions.md
-├── documentation
-│   └── README.md
-```
+    ```
+    ├── docs
+    │   ├── Architectural_Decisions.md
+    │   ├── Documentation.md
+    │   ├── image-1.png
+    │   ├── image-2.png
+    │   ├── image.png
+    │   └── index.md
+    ```
 
-The decisions.md file in the architecture directory outline the key architectural decisions made in the project. This file communicates IMPACT as opposed to details in the next file.
+    The decisions.md file in the architecture directory outline the key architectural decisions made in the project. This file communicates IMPACT as opposed to details in the next file.
 
-The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
+    The README.md file (this file) in the documentation directory is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
-#### Infrastructure directory
+=== "Infrastructure directory"
 
-```
-└── infrastructure
-    ├── backend.tf
-    ├── bootstrap
-    ├── live
-    ├── modules
-    ├── provider.tf
-    └── terragrunt.hcl
-```
-This directory contains EVERYTHING related to the infrastructure required to deploy the application.
+    ```
+    └── infrastructure
+        ├── backend.tf
+        ├── bootstrap
+        ├── live
+        ├── modules
+        ├── provider.tf
+        └── terragrunt.hcl
+    ```
+    This directory contains EVERYTHING related to the infrastructure required to deploy the application.
 
-##### Backend, provider.tf files
-```
-└── infrastructure
-    ├── backend.tf
-    .
-    .
-    .
-    ├── provider.tf
-```
+=== "Backend, provider.tf files"
+    ```
+    └── infrastructure
+        ├── backend.tf
+        .
+        .
+        .
+        ├── provider.tf
+    ```
 
-Terragrunt automatically generates these files in order to tell terraform where the S3 bucket is stored and which providers to use respectively. They are generated every run and can be safely deleted.
+    Terragrunt automatically generates these files in order to tell terraform where the S3 bucket is stored and which providers to use respectively. They are generated every run and can be safely deleted.
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
