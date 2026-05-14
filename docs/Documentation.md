@@ -1,12 +1,12 @@
 <a id="docs-top"></a>
 
-# Intro
+# Introduction
 
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
 ## Table of Contents
 
-- [Intro](#intro)
+- [Introduction](#introduction)
   - [Table of Contents](#table-of-contents)
 - [Traffic Flow Explained](#traffic-flow-explained)
   - [Access to website](#access-to-website)
