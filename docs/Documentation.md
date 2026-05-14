@@ -109,7 +109,7 @@ Thin wrapper over Terraform designed to:
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ### Structure Explained
-####  README, LICENSE, Dockerfile, app/
+#### README, LICENSE, Dockerfile, app/
 === "README, LICENSE.txt"
 
     ```
@@ -273,11 +273,6 @@ This directory contains EVERYTHING related to the infrastructure required to dep
     `main.tf` defines the resource blocks to create infrastructure
     `outputs.tf`
     `variables.tf`
-
-
-
-
-
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
@@ -551,9 +546,11 @@ Here, IAM user short-term credentials is best, since if they are compromised, th
 
 My AWS account with root user created a seperate CLI user account via Identity Access Management (IAM) service with a Administrator Access policy (Full guide [here](https://docs.aws.amazon.com/cli/v1/userguide/cli-authentication-user.html)). This policy allows ALL actions on ALL resources.
 
->*IMPROVEMENT: 07/04: Use short-term IAM credentials to limit blast radius if compromised.
->
->*IMPROVEMENT: 07/04: Even if using long-term credentials, [ROTATE them regularly](https://aws.amazon.com/blogs/security/how-to-rotate-access-keys-for-iam-users/)
+!!! warning "Improvements needed "
+
+    07/04: Use short-term IAM credentials to limit blast radius if compromised.
+
+    07/04: Even if using long-term credentials, [ROTATE them regularly](https://aws.amazon.com/blogs/security/how-to-rotate-access-keys-for-iam-users/)
 
 ```
   default_tags {
@@ -576,13 +573,13 @@ Within the provider as a whole - `default_tags` [applies default tags to resourc
 
 This module defines the Virtual Private Cloud (VPC) resource in AWS:
 
-##### aws_availability_zones data block
-
-```
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-```
+=== "aws_availability_zones data block"
+   
+    ```
+    data "aws_availability_zones" "available" {
+      state = "available"
+    }
+    ```
 
 This is a `data` block within terraform - it [fetches data about a resource](https://developer.hashicorp.com/terraform/language/block/data) without provisioning infrastructure. 
 
@@ -591,25 +588,17 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
  The `state = "available"` argument filters these by those that are in an "available" state - the default option is all the states `available`, `information`, `impaired` and `unavailable`
 
-> AD: Dynamic Availability Zone retrieval - terraform code can be implemented with modified region/account, [making the configuration more flexible](https://developer.hashicorp.com/terraform/language/data-sources)!
->
-> This pattern is present in the terraform tutorial by hashicorp, as it [specifically avoids having to hardcode AZs](https://developer.hashicorp.com/terraform/tutorials/configuration-language/data-sources) within the VPC module.
+!!! success "Dynamic availability zone retrieval"
+
+    This terraform code can be implemented with modified region/account, [making the configuration more flexible](https://developer.hashicorp.com/terraform/language/data-sources)!
+
+    This pattern is present in the terraform tutorial by hashicorp, as it [specifically avoids having to hardcode AZs](https://developer.hashicorp.com/terraform/tutorials/configuration-language/data-sources) within the VPC module.
 
 
 
 ##### VPC resource block
 
-```
-resource "aws_vpc" "main" {
-  cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true  # Required for VPC endpoints
-  enable_dns_support   = true  # Required for VPC endpoints
-
-  tags = {
-    Name = "${var.project_name}-${var.environment}-vpc"
-  }
-}
-```
+=== "Explanation"
 
 This is the Virtual Private Cloud (VPC) resource block - it provides a VPC resource.
 
