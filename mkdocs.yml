@@ -1,5 +1,8 @@
 site_name: Docs
 site_url: https://mazharul419.github.io/ECS-Forge/
+
+docs_dir: docs
+
 theme:
   name: material
   palette: 
