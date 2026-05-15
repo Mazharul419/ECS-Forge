@@ -285,20 +285,26 @@ This directory contains EVERYTHING related to the infrastructure required to dep
 ## DEEP DIVE
 ### Root Configuration (terragrunt.hcl)
 
-#### File Location
+=== "File Location"
 
-```
-└── infrastructure
-    ├── backend.tf
-    ├── bootstrap
-    .
-    .
-    .
-    └── terragrunt.hcl
-```
-This file is located within the root of my infrastructure directory (directly inside it - not any further in). This is because it holds configuration common to ALL modules.
+    ```
+    └── infrastructure
+        ├── backend.tf
+        ├── bootstrap
+        .
+        .
+        .
+        └── terragrunt.hcl
+    ```
+    This file is located within the root of my infrastructure directory (directly inside it - not any further in). This is because it holds configuration common to ALL modules.
 
-#### Locals Block
+=== "Full code"
+
+    ``` title="infrastructure/terragrunt.hcl"
+    --8<-- "infrastructure/terragrunt.hcl"
+    ```
+
+#### 1. Locals Block"
 
 ```
 locals {
@@ -317,38 +323,38 @@ When they call terraform modules, they POPULATE the empty values set for variabl
 
 The block includes:
 
-`project name` and `aws region` - these are referenced by terraform in ALL modules for resource-level tags
+    `project name` and `aws region` - these are referenced by terraform in ALL modules for resource-level tags
 
-`domain_name` - the apex domain which dev (tm-dev) and prod (tm) environments are based on
+    `domain_name` - the apex domain which dev (tm-dev) and prod (tm) environments are based on
 
-`account_id` - the ACTIVE AWS account id at runtime, logged in either via AWS CLI (locally) or within AWS configure-aws-credentials action within CD (Github Actions runner)
+    `account_id` - the ACTIVE AWS account id at runtime, logged in either via AWS CLI (locally) or within AWS configure-aws-credentials action within CD (Github Actions runner)
 
-`bucket_name` - The name of the S3 bucket - this is a combination of locals from earlier to make it globally unique*
+    `bucket_name` - The name of the S3 bucket - this is a combination of locals from earlier to make it globally unique*
 
-`environment` - This is a dynamic local which outputs the environment of the child terragrunt.hcl calling it - a demo is below:
-<br><br>
->The `environment = element(split("/", path_relative_to_include()), 1)` has both Terragrunt and HCl functions within which grab the environment based on the directory structure below:
->
->`path_relative_to_include()` [returns the relative path](https://docs.terragrunt.com/reference/hcl/functions/#path_relative_to_include) between the child terragrunt.hcl and the parent terragrunt.hcl at root
->
->For example if child is at `live/dev/vpc/terragrunt.hcl` - and since parent is at repo root, this returns `live/dev/vpc`
->
->This is wrapped in `split()` - a HCL function [which produces a list](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/string/split) based on the `/` seperator - returns `["live", "dev", "vpc"]`
->
->The final function `element()` [retrieves a single element from a list](https://developer.hashicorp.com/terraform/language/functions/element) - since the index is zero based, and based on the folder config, the environment is found in index `1` - this returns the string `"dev"`.
+    `environment` - This is a dynamic local which outputs the environment of the child terragrunt.hcl calling it
 
-<br>
+!!! information "environment block explanation"
 
->*IMPROVEMENT 03/04: Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
->
->A: I do not have to manually append the two locals here>
->
->B: IMPORTANTLY means if another account tries to create buckets using this suffix [their request is rejected - preventing bucket takeover attacks!](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/)
+    The `environment = element(split("/", path_relative_to_include()), 1)` has both Terragrunt and HCL functions within which grab the environment based on the directory structure below:
 
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
+    `path_relative_to_include()` [returns the relative path](https://docs.terragrunt.com/reference/hcl/functions/#path_relative_to_include) between the child terragrunt.hcl and the parent terragrunt.hcl at root
 
-#### Remote State Block
-<a id="Remote State Block"></a>
+    For example if child is at `live/dev/vpc/terragrunt.hcl` - and since parent is at repo root, this returns `live/dev/vpc`
+
+    This is wrapped in `split()` - a HCL function [which produces a list](https://developer.hashicorp.com/packer/docs/templates/hcl_templates/functions/string/split) based on the `/` seperator - returns `["live", "dev", "vpc"]`
+
+    The final function `element()` [retrieves a single element from a list](https://developer.hashicorp.com/terraform/language/functions/element) - since the index is zero based, and based on the folder config, the environment is found in index `1` - this returns the string `"dev"`.
+
+
+!!! warning "Improvement needed"
+
+    Improve bucket naming convention - S3 now accepts [account regional namespaces](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/) for s3 buckets, which means automatically provides an `account_id` and `aws_region` suffix linked to the account creating this - it means:
+
+    A: I do not have to manually append the two locals here>
+
+    B: IMPORTANTLY means if another account tries to create buckets using this suffix [their request is rejected - preventing bucket takeover attacks!](https://aws.amazon.com/blogs/aws/introducing-account-regional-namespaces-for-amazon-s3-general-purpose-buckets/)
+
+#### 2. Remote State Block
 
 ```
 remote_state {
@@ -386,17 +392,17 @@ The `generate` block requests terragrunt to [generate a `backend.tf` in the work
 - `encrypt      = true` [enables server-side encryption](https://docs.terragrunt.com/reference/hcl/blocks/#terraform) of the state file
 - `use_lockfile = true`[enables native s3 state locking](https://docs.terragrunt.com/reference/hcl/blocks/#backend)
 
-<br>
+!!! success "Patterns shown here"
 
->AD: Remote S3 backend
->
->AD: S3 Server-side encryption
->
->AD: S3 native state-locking
->
->AD: Remote state [bootstrap offered by Terragrunt](https://docs.terragrunt.com/features/units/state-backend/)
+    Remote S3 backend: Highly available state
 
-#### Generate Provider Block
+    S3 Server-side encryption: Protected against compromise with encryption at rest (KMS)
+
+    S3 native state-locking: Secure: Prevents concurrent writes upon plan/apply; Modern: Removes DynamoDB dependency which will be deprecated.
+
+    Remote state [bootstrap offered by Terragrunt](https://docs.terragrunt.com/features/units/state-backend/): Automatic bootstrapping of S3 backend without having to rely on direct `aws s3` API calls.
+
+#### 3. Generate Provider Block
 
 ```
 generate "provider" {
@@ -529,22 +535,25 @@ Here the `region` is specified as the earlier defined locals value - which [defi
 
 Here I decided to use eu-west-2 (London) - admittedly, the only reason was that it is the closest from me. I am certain there are better reasons for region choice when deploying which I'd like to pick up on.
 
-> IMPROVEMENT 09/04: Have better justification for region selection i.e., is it faster? More secure? etc.
 
-> Good Practice:
-> 
-> Even though this is already defined in my `~/.aws/config` - it is better to explicitly define this in the terraform configuration since:
-> 
-> A: It is explicit to anyone viewing the code - and not hidden behind a config file locally
-> 
-> B: It [has the highest precedence in configuration order](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication-and-configuration) - therefore cannot be overriden.
+!!! warning "Improvement Needed"
 
-The `default_tags` block [provides default tags](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) to all resources within this provider.
+    09/04: Have better justification for region selection i.e., is it faster? More secure? etc.
 
-> In order for terraform to deploy resource to AWS - it needs to [communicate programmatically](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers). It [communicates to the endpoint](https://docs.aws.amazon.com/general/latest/gr/rande.html) of the AWS web service - this is per service per region - in the following format:
-> `protocol://service-code.region-code.amazonaws.com`
->
-> i.e., `https://dynamodb.us-west-2.amazonaws.com` is the endpoint for the Amazon DynamoDB service in the US West (Oregon) Region
+!!! success "Patterns demonstrated"
+
+    Even though this is already defined in my `~/.aws/config` - explicitly defining the region in the terraform configuration is better since:
+    
+    A: It is explicit to anyone viewing the code - and not hidden behind a config file locally
+    
+    B: It [has the highest precedence in configuration order](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#authentication-and-configuration) - therefore cannot be overriden.
+
+    The `default_tags` block [provides default tags](https://registry.terraform.io/providers/hashicorp/aws/latest/docs#default_tags-configuration-block) to all resources within this provider.
+
+In order for terraform to deploy resource to AWS - it needs to [communicate programmatically](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/aws-create#providers). It [communicates to the endpoint](https://docs.aws.amazon.com/general/latest/gr/rande.html) of the AWS web service - this is per service per region - in the following format:
+`protocol://service-code.region-code.amazonaws.com`
+
+i.e., `https://dynamodb.us-west-2.amazonaws.com` is the endpoint for the Amazon DynamoDB service in the US West (Oregon) Region
 
 Since terraform uses the same method to authenticate as the AWS Command-Line-Interface (CLI) (Same reference as above) - I used my already logged in long-term credentials [NOT RECOMMENDED*] to authenticate locally. [Here](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-authentication.html) is documentation showing different ways to authenticate.
 
