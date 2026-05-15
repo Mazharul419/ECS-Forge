@@ -5,6 +5,12 @@
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
 ## Traffic Flow Explained
+<iframe 
+  src="../ecs-architecture-diagram.html" 
+  width="100%" 
+  height="670px" 
+  style="border:none;">
+</iframe>
 ### Access to website
 === "Overview"
 

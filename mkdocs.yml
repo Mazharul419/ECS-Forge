@@ -21,6 +21,7 @@ theme:
   features:
     - navigation.footer
 markdown_extensions:
+  - md_in_html
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
