@@ -3,6 +3,11 @@ site_url: https://mazharul419.github.io/ECS-Forge/
 
 docs_dir: docs
 
+nav:
+  - Architectural Decisions: Architectural_Decisions.md
+  - Documentation: Documentation.md
+  - Diagram: ecs-architecture-diagram.html
+
 theme:
   name: material
   palette: 
@@ -20,8 +25,10 @@ theme:
         name: Switch to light mode
   features:
     - navigation.footer
+    - content.code.annotate 
 markdown_extensions:
   - md_in_html
+  - attr_list
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -38,3 +45,9 @@ markdown_extensions:
       alternate_style: true
   - admonition
   - pymdownx.details
+
+plugins:
+  - search
+
+extra_css:
+  - stylesheets/extra.css

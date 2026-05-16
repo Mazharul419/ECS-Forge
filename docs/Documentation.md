@@ -8,23 +8,36 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
 <iframe 
   src="../ecs-architecture-diagram.html" 
   width="100%" 
-  height="670px" 
-  style="border:none;">
+  height="1200px" 
+  style="border:none;pointer-events:all">
 </iframe>
-### Access to website
+
+### 1. DNS Query for Load Balancer
+
 === "Overview"
 
-    ![alt text](image.png)
+    <figure markdown style="text-align: center;">
+      ![Architecture](DNS 16.05.svg){ width="1300" }
+    </figure>
 
+    To access the live application in production environment, the user types in ***dev.mazharulislam.dev*** or ***prod.mazharulislam.dev*** if accessing development environment.
 
-    To access the live application in production environment, the user types in ***tm.mazharulislam.dev***(or ***tm-dev.mazharulislam.dev*** if accessing development environment).
+    In the internet though, clients and servers don't recognise urls though - they only know IP addresses when it comes to identifying where they are on a network, and therefore establishing a connection.
 
-    A DNS (Domain Name System) query takes place - the client sends out tm.mazharulislam.dev and receives the IP address of the public-facing Application Load Balancer (ALB) allowing it to connect to the application hosted in AWS.
+    A system for translating human-readable urls to computer-readable IP addresses is needed - known as DNS (Domain Name System).
+    
+     1. The client (machine connecting to server) first types in the selected url in their browser.
+     
+     2. This sends out a DNS request for the url, which the DNS resolver receives.
+     3. DNS resolver resolves this url through DNS resolution to the IP address of the publicly-facing Application Load Balancer (ALB).
+     4. Browser sends a HTTP request out allowing the user to connect
 
 
 === "Detailed Flow"
 
-    ![alt text](image-1.png)
+    <figure markdown style="text-align: center;">
+      ![Architecture](DNS advanced.svg){ width=100% }
+    </figure>
 
     Assuming there is no cache stored at any stage - [the following](https://www.cloudflare.com/en-gb/learning/dns/what-is-dns/) will happen:
 
@@ -55,13 +68,14 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
 
     *If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
 
-### Load Balancer
+### 2. Internet Gateway to Load Balancer
 Use this section to explain flow from ALB to tasks in private subnet
 
-### ECS Tasks
+
+### 3. Load Balancer to ECS Target Group
 Explain how ECS tasks get scheduled and stuff.
 
-### VPC Endpoints
+### 4. ECS Tasks to VPC Endpoints
 Also explain how applications can access AWS services privately through VPC Endpoints
 
 
@@ -730,12 +744,13 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     !!! information "Info"
 
-        For the public subnet (and any resources within) to connect to the internet - 3 things are required:
+        For the public subnet (and any resources within) to connect to the internet - 3 resources are required:
+
         - An Internet Gateway present in it's VPC
         - A route table attached to the VPC, with all destination IPs targeting the Internet Gateway
         - A route table association connecting the subnet to the route table
 
-        These are explained below:
+        These are explained below.
 
     <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
@@ -838,8 +853,6 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     ```
 
     Associations are for each of the 2 subnets.
-
-    [Link to Code](https://github.com/Mazharul419/ECS-Forge/blob/main/infrastructure/modules/vpc/main.tf)
 
 === "Description"
 
@@ -1080,49 +1093,51 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     }
     ```
 
-    ACM returns domain validation options (dvo), which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1). To break this down:
+    ACM returns domain validation options (dvo), which [are sets of objects](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/acm_certificate#domain_validation_options-1).
 
-    Objects are a [collection of named attributes that each have their own type](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#object). It's a pair of curly braces containing a series of <KEY> = <TYPE> pairs. [These can be seperated by a comma, or line-break.](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects).
+    ??? information "DVO Breakdown"
 
-    Example:
-    ```
-    {
-      a = "test123"
-      b = "test456"
-    }
-    ```
+        Objects are a [collection of named attributes that each have their own type](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#object). It's a pair of curly braces containing a series of <KEY> = <TYPE> pairs. [These can be seperated by a comma, or line-break.](https://developer.hashicorp.com/terraform/language/expressions/types#maps-objects).
 
-    These are contained in `set`s which is a collection of unique values with no secondary identifiers or ordering. They must be the same type.
+        
+        ``` title="Example:"
+        {
+          a = "test123"
+          b = "test456"
+        }
+        ```
 
-    Example:
-    ```
-    [
-      "d",
-      "e",
-      "f"
-    ]
-    ```
+        These are contained in a `set` which is a collection of unique values with no secondary identifiers or ordering. They must be the same type.
 
-    These are both examples of [structural types](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#structural-types).
+        
+        ``` title="Example:"
+        [
+          "d",
+          "e",
+          "f"
+        ]
+        ```
 
-    The final format of a `dvo` ACM returns looks like this:
+        These are both examples of [structural types](https://developer.hashicorp.com/terraform/language/expressions/type-constraints#structural-types).
 
-    ```
-    12:15:03.218 STDOUT [acm] terraform: domain_validation_options = toset([
-    12:15:03.218 STDOUT [acm] terraform:   {
-    12:15:03.218 STDOUT [acm] terraform:     "domain_name" = "prod.mazharulislam.dev"
-    12:15:03.218 STDOUT [acm] terraform:     "resource_record_name" = "_7835c2640307344f99a3609672fcef50.prod.mazharulislam.dev."
-    12:15:03.219 STDOUT [acm] terraform:     "resource_record_type" = "CNAME"
-    12:15:03.219 STDOUT [acm] terraform:     "resource_record_value" = "_ac44905faf20f74f1820c6ae2b83ce83.jkddzztszm.acm-validations.aws."
-    12:15:03.219 STDOUT [acm] terraform:   },
-    12:15:03.220 STDOUT [acm] terraform: ])
-    ```
+        The final format of a `dvo` ACM returns looks like this:
+
+        ``` bash title="dvo format"
+        12:15:03.218 STDOUT [acm] terraform: domain_validation_options = toset([
+        12:15:03.218 STDOUT [acm] terraform:   {
+        12:15:03.218 STDOUT [acm] terraform:     "domain_name" = "prod.mazharulislam.dev"
+        12:15:03.218 STDOUT [acm] terraform:     "resource_record_name" = "_7835c2640307344f99a3609672fcef50.prod.mazharulislam.dev."
+        12:15:03.219 STDOUT [acm] terraform:     "resource_record_type" = "CNAME"
+        12:15:03.219 STDOUT [acm] terraform:     "resource_record_value" = "_ac44905faf20f74f1820c6ae2b83ce83.jkddzztszm.acm-validations.aws."
+        12:15:03.219 STDOUT [acm] terraform:   },
+        12:15:03.220 STDOUT [acm] terraform: ])
+        ```
 
     ACM then requires proof of domain ownership - it sends a CNAME record to the user asking it to add this record to it's domain registrar to prove this.
 
     In my case, since I am using Cloudflare, the CNAME record is added to my specific domain `mazharulislam.dev` using the `cloudflare_dns_record` resource:
 
-    ```
+    ``` hcl
     resource "cloudflare_dns_record" "cert_validation" {
       for_each = {
         for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
@@ -1148,7 +1163,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     Cloudflare then adds these values to its dns records for the domain it belongs to:
 
-    ```
+    ``` hcl
     resource "cloudflare_dns_record" "cert_validation" {
       .
       .
@@ -1169,7 +1184,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     The ACM validation waiter polls ACM until it sees the record:
 
-    ```
+    ``` hcl
     resource "aws_acm_certificate_validation" "main" {
       certificate_arn         = aws_acm_certificate.main.arn
       validation_record_fqdns = [for dvo in aws_acm_certificate.main.domain_validation_options : dvo.resource_record_name]
@@ -1212,22 +1227,22 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     | <a name="output_validation_record_fqdns"></a> [validation\_record\_fqdns](#output\_validation\_record\_fqdns) | FQDNs of the validation records |
 
 === "Terraform module"
-    ``` title="infrastructure/modules/acm/main.tf"
+    ``` hcl title="infrastructure/modules/acm/main.tf"
     --8<-- "infrastructure/modules/acm/main.tf"
     ```
 
 === "Terragrunt configs"
 
-    ``` title="dev/acm/terragrunt.hcl"
+    ``` hcl title="dev/acm/terragrunt.hcl"
     --8<-- "infrastructure/live/dev/acm/terragrunt.hcl"
     ```
-    ``` title="dev/env.hcl"
+    ``` hcl title="dev/env.hcl"
     --8<-- "infrastructure/live/dev/env.hcl"
     ```
-    ``` title="Prod"
+    ``` hcl title="Prod"
     --8<-- "infrastructure/live/prod/acm/terragrunt.hcl"
     ```
-    ``` title="prod/env.hcl"
+    ``` hcl title="prod/env.hcl"
     --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
@@ -1279,32 +1294,32 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     | <a name="output_target_group_arn"></a> [target\_group\_arn](#output\_target\_group\_arn) | ARN of the target group |
 
 === "Terraform module"
-    ``` title="infrastructure/modules/alb/main.tf"
+    ``` hcl title="infrastructure/modules/alb/main.tf"
     --8<-- "infrastructure/modules/alb/main.tf"
     ```
 
 === "Terragrunt configs"
 
-    ``` title="dev/alb/terragrunt.hcl"
+    ``` hcl title="dev/alb/terragrunt.hcl"
     --8<-- "infrastructure/live/dev/alb/terragrunt.hcl"
     ```
-    ``` title="dev/env.hcl"
+    ``` hcl title="dev/env.hcl"
     --8<-- "infrastructure/live/dev/env.hcl"
     ```
-    ``` title="Prod"
+    ``` hcl title="Prod"
     --8<-- "infrastructure/live/prod/alb/terragrunt.hcl"
     ```
-    ``` title="prod/env.hcl"
+    ``` hcl title="prod/env.hcl"
     --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
 #### DNS Module
 
-    === "Explanation"
+=== "Explanation"
 
     This module sets up the Cloudflare CNAME DNS record pointing the subdomains dev. and prod. mazharulislam.dev to the application load balancer DNS name. The DNS record can't be created until the ALB DNS name is known, hence the depends-on.
 
-    === "Description"
+=== "Description"
 
     ##### Resources
 
@@ -1332,22 +1347,22 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     | <a name="output_record_id"></a> [record\_id](#output\_record\_id) | Cloudflare record ID |
 
 === "Terraform module"
-    ``` title="infrastructure/modules/dns/main.tf"
+    ``` hcl title="infrastructure/modules/dns/main.tf"
     --8<-- "infrastructure/modules/dns/main.tf"
     ```
 
 === "Terragrunt configs"
 
-    ``` title="dev/dns/terragrunt.hcl"
+    ``` hcl title="dev/dns/terragrunt.hcl"
     --8<-- "infrastructure/live/dev/dns/terragrunt.hcl"
     ```
-    ``` title="dev/env.hcl"
+    ``` hcl title="dev/env.hcl"
     --8<-- "infrastructure/live/dev/env.hcl"
     ```
-    ``` title="Prod"
+    ``` hcl title="Prod"
     --8<-- "infrastructure/live/prod/dns/terragrunt.hcl"
     ```
-    ``` title="prod/env.hcl"
+    ``` hcl title="prod/env.hcl"
     --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
@@ -1363,7 +1378,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     The Trust policy (WHO can assume the role) is first written:
 
-    ```
+    ``` hcl title="ECS Trust policy"
       assume_role_policy = jsonencode({
         Version = "2012-10-17"
         Statement = [{
@@ -1447,22 +1462,22 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ARN of the task definition |
 
 === "Terraform module"
-    ``` title="infrastructure/modules/ecs/main.tf"
+    ``` hcl title="infrastructure/modules/ecs/main.tf"
     --8<-- "infrastructure/modules/ecs/main.tf"
     ```
 
 === "Terragrunt configs"
 
-    ``` title="dev/ecs/terragrunt.hcl"
+    ``` hcl title="dev/ecs/terragrunt.hcl"
     --8<-- "infrastructure/live/dev/ecs/terragrunt.hcl"
     ```
-    ``` title="dev/env.hcl"
+    ``` hcl title="dev/env.hcl"
     --8<-- "infrastructure/live/dev/env.hcl"
     ```
-    ``` title="Prod"
+    ``` hcl title="Prod"
     --8<-- "infrastructure/live/prod/ecs/terragrunt.hcl"
     ```
-    ``` title="prod/env.hcl"
+    ``` hcl title="prod/env.hcl"
     --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
@@ -1511,22 +1526,22 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     | <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url) | ECR repository URL |
 
 === "Terraform module"
-    ``` title="infrastructure/modules/ecr/main.tf"
+    ``` hcl title="infrastructure/modules/ecr/main.tf"
     --8<-- "infrastructure/modules/ecr/main.tf"
     ```
 
 === "Terragrunt configs"
 
-    ``` title="dev/ecr/terragrunt.hcl"
+    ``` hcl title="dev/ecr/terragrunt.hcl"
     --8<-- "infrastructure/live/dev/ecr/terragrunt.hcl"
     ```
-    ``` title="dev/env.hcl"
+    ``` hcl title="dev/env.hcl"
     --8<-- "infrastructure/live/dev/env.hcl"
     ```
-    ``` title="Prod"
+    ``` hcl title="Prod"
     --8<-- "infrastructure/live/prod/ecr/terragrunt.hcl"
     ```
-    ``` title="prod/env.hcl"
+    ``` hcl title="prod/env.hcl"
     --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
@@ -1572,7 +1587,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     The `aws_iam_openid_connect_provider` resource block is first defined - this registers the external Github IdP service that [supports the OpenID Connect standard](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html):
 
-    ```
+    ``` hcl
     resource "aws_iam_openid_connect_provider" "github" {
       url = "https://token.actions.githubusercontent.com"
 
@@ -1590,7 +1605,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     The Trust policy (WHO can assume the role) is then written:
 
-    ```
+    ``` hcl title="OIDC Trust Policy"
       assume_role_policy = jsonencode({
         Version = "2012-10-17"
         Statement = [{
@@ -1667,7 +1682,7 @@ Environments are configured with specific values at the environment level (dev/p
 
 === "Dev Environment"
 
-    ```
+    ``` hcl
     locals {
       environment   = "dev"
       subdomain     = "dev"
@@ -1686,7 +1701,7 @@ Environments are configured with specific values at the environment level (dev/p
 
 === "Prod Environment"
 
-    ```
+    ``` hcl
     locals {
       environment   = "prod"
       subdomain     = "prod"
@@ -1713,7 +1728,7 @@ Environments are configured with specific values at the environment level (dev/p
 
 There are several CI/CD pipelines in this project which serve a different purpose. They use Github Actions, since it offers the most flexibility for pipelines - allowing me to define approval, linting, and security gates, so I can set up complex workflows.
 
-### "CI - Build and Scan Docker image (Automatic)"
+#### CI - Build and Scan Docker image (Automatic)
 
 === "Explanation"
 
@@ -1725,7 +1740,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     Originally, when performing the basic Grype image scanning there are 8 issues related to the code-server version, 2 which are critical:
 
-    ```
+    ``` bash title="Grype terminal output"
     code-server         0.0.0                         4.99.4             npm   GHSA-p483-wpfp-42cj  High        0.3% (55th)    0.3    
     code-server         1.112.0                       4.99.4             npm   GHSA-p483-wpfp-42cj  High        0.3% (55th)    0.3    
     code-server         0.0.0                         3.12.0             npm   GHSA-2gp3-6c9p-jp7w  Medium      0.4% (60th)    0.2    
@@ -1738,7 +1753,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     Looking at these further through JSON output:
 
-    ```
+    ``` JSON title="grype JSON output"
     {
       "vuln": "GHSA-frjg-g767-7363",
       "name": "code-server",
@@ -1776,7 +1791,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     The file exists within the root of the code-server source, and looks like this:
 
-    ```
+    ``` JSON
     "name": "code-server",
     "license": "MIT",
     "version": "0.0.0",
@@ -1787,7 +1802,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     Having run the following command:
 
-    ```
+    ``` bash
     $ docker run --rm ecs-forge-global-ecr:initial code-server --version
     [2026-05-04T09:24:43.378Z] info  Wrote default config file to /home/coder/.config/code-server/config.yaml
     0.0.0 d7599ae360900ad55b503e3c840b417a1eae4798 with Code 1.112.0
@@ -1798,7 +1813,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     This is actually the vscode version - and is mislabelled as the code-server version:
 
-    ```
+    ``` json
     "name": "code-server",
     "version": "1.112.0",
     "private": true,
@@ -1817,7 +1832,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     Since these are false positives, these are ignored in Grype using the `ignore` line in the .`.`.`.grype.yaml` file:
 
-    ```
+    ``` bash
     ignore:
       - vulnerability: GHSA-p483-wpfp-42cj
       - vulnerability: GHSA-2gp3-6c9p-jp7w
@@ -1831,7 +1846,7 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
 === "Code"
 
-    ``` title=".github/workflows/build_push_image.yaml"
+    ``` yaml title=".github/workflows/build_push_image.yaml"
     --8<-- ".github/workflows/build_push_image.yaml"
     ```
 
@@ -1848,9 +1863,27 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
 === "Code"
 
-    ``` title=".github/workflows/lint_terragrunt_code.yaml"
+    ``` yaml title=".github/workflows/lint_terragrunt_code.yaml"
     --8<-- ".github/workflows/lint_terragrunt_code.yaml"
     ```
+
+#### Terragrunt Deploy (Manual)
+
+=== "Explanation"
+
+    This workflow deploys infrastructure
+
+=== "Code"
+
+    ``` yaml title=".github/workflows/deploy_environment.yaml"
+    --8<-- ".github/workflows/deploy_environment.yaml"
+    ```
+
+### Terragrunt Destroy (Manual)
+
+=== "Explanation"
+
+    This workflow does the same as above, but uses the `terragrunt run --all destroy` command instead.
 
 ### Dockerfile Explained
 
@@ -1873,33 +1906,35 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
     The simplest option which worked both locally and in CI is to copy the specific commit of the code-server repo via git clone.
 
-    Various dependencies are required here - using npm install [as recommended by Docs](https://coder.com/docs/code-server/CONTRIBUTING#build):
+    Various dependencies are required here - using npm install [as recommended by Docs](https://coder.com/docs/code-server/CONTRIBUTING#build).
+
+    ??? information "dependencies explanation"
 
 
-    `build-essential`: C/C++ compilers and build tools
+        `build-essential`: C/C++ compilers and build tools
 
-    `g++ python-is-python3` Needed to compile native add-on modules for node.js
+        `g++ python-is-python3` Needed to compile native add-on modules for node.js
 
-    `libx11-dev`: X11 graphics library headers (For Electron UI)
+        `libx11-dev`: X11 graphics library headers (For Electron UI)
 
-    `libxkbfile-dev`: X11 Keyboard mapping support
+        `libxkbfile-dev`: X11 Keyboard mapping support
 
-    `libsecret-1-dev`: Secure storage for credentials
+        `libsecret-1-dev`: Secure storage for credentials
 
-    `libkrb5-dev`: Kerberos development headers
+        `libkrb5-dev`: Kerberos development headers
 
-    `git git-lfs`: Clone VSCode submodule
-    Handles files that are too large to be stored - ensures large binary files are pulled correctly when cloning
+        `git git-lfs`: Clone VSCode submodule
+        Handles files that are too large to be stored - ensures large binary files are pulled correctly when cloning
 
-    `quilt`: Applies code-server patches to upstream VSCode
+        `quilt`: Applies code-server patches to upstream VSCode
 
-    `rsync`: Linux utility for syncing files
+        `rsync`: Linux utility for syncing files
 
-    `jq`: Command-line json processor
+        `jq`: Command-line json processor
 
-    `gnupg`: GNU Privacy Guard - Used to sign commits and verify signatures when updating submodules
+        `gnupg`: GNU Privacy Guard - Used to sign commits and verify signatures when updating submodules
 
-    `libgcc1`: c++ library used in standalone release runtime
+        `libgcc1`: c++ library used in standalone release runtime
 
     #### Stage 2: Runtime
 
@@ -1921,44 +1956,63 @@ There are several CI/CD pipelines in this project which serve a different purpos
 
 === "Code"
 
-    ``` title="Dockerfile"
+    ``` go title="Dockerfile"
     --8<-- "Dockerfile"
     ```
 
 ### Bootstrap Script
 
-This script is required to bootstrap several resource in order to avoid circular dependencies.
+=== "Explanation"
 
-Environment variables are firstly defined.
+    This script is required to bootstrap several resource in order to avoid circular dependencies.
 
-#### Terraform state
+    Environment variables are firstly defined:
 
-1. When creating cloud infrastructure in Terraform the remote state is best held somewhere secure.
+    ``` bash title="infrastructure/bootstrap/bootstrap.sh"
+    export AWS_PAGER="" # (1)
+    export TG_NON_INTERACTIVE=true # (2)
+    ```
 
-2. That place is typically a cloud environment - the same place infra is being deployed. 
+    1. Prevents AWS CLI from hanging
+    2. Ensures terragrunt runs non-interactively
+    
 
-3. However to deploy this you'd want to use Terraform since you've been using that to deploy the rest of your infra. 
+    #### Terraform state
 
-4. But since any infra defined in Terraform requires state this is a circular dependency.
+    3. When creating cloud infrastructure in Terraform the remote state is best held somewhere secure.
 
-To break out of this, you need to create and store the state OUTSIDE of Terraform management first, then use this state when creating the rest of the infra.
+    4. That place is typically a cloud environment - the same place infra is being deployed. 
 
-To do this part of my bootstrap script creates this outside, however I don't rely on direct API calls to AWS. Terragrunt manages this via the `terragrunt init --backend-bootstrap` command passed through - which creates the S3 remote state as defined in this block: <a href="#Remote State Block">Remote State Block</a>
+    5. However to deploy this you'd want to use Terraform since you've been using that to deploy the rest of your infra. 
 
-#### OIDC and ECR
+    6. But since any infra defined in Terraform requires state this is a circular dependency.
 
-In order for CI to deploy infrastructure, the OIDC role that gives it the Trust and permissions to do so needs to be created beforehand - therefore this needs to be created beforehand.
+    To break out of this, you need to create and store the state OUTSIDE of Terraform management first, then use this state when creating the rest of the infra.
 
-Also, for the ECS service to be deployed it needs a pre-existing image. Since in my infrastructure configuration it would exist in ECR, ECR must be created prior beforehand too.
+    To do this part of my bootstrap script creates this outside, however I don't rely on direct API calls to AWS. Terragrunt manages this via the `terragrunt init --backend-bootstrap` command passed through - which creates the S3 remote state as defined in this block: <a href="#Remote State Block">Remote State Block</a>
 
-Since state is already created through Terragrunt initialisation - these two resources can be created under terraform management. A `global` folder with the modules and relevant resource blocks are defined.
+    #### OIDC and ECR
 
-As part of the bootstrap script these are applied:
+    In order for CI to deploy infrastructure, the OIDC role that gives it the Trust and permissions to do so needs to be created beforehand - therefore this needs to be created beforehand.
 
-```
-echo "Applying OIDC configuration..."
-terragrunt apply --auto-approve
-```
+    Also, for the ECS service to be deployed it needs a pre-existing image. Since in my infrastructure configuration it would exist in ECR, ECR must be created prior beforehand too.
+
+    Since state is already created through Terragrunt initialisation - these two resources can be created under terraform management. A `global` folder with the modules and relevant resource blocks are defined.
+
+    As part of the bootstrap script these are applied:
+
+    ``` bash
+    echo "Applying OIDC configuration..."
+    terragrunt apply --auto-approve
+    ```
+
+=== "Code"
+
+    ``` bash title="infrastructure/bootstrap/bootstrap.sh"
+    --8<-- "infrastructure/bootstrap/bootstrap.sh"
+    ```
+
+
 
 #### Docker image push
 
