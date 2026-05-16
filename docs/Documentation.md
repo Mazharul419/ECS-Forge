@@ -1564,24 +1564,28 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     </div>
     <br>
 
-    > From Github:
-    > 1. You establish an OIDC trust relationship in the cloud provider, allowing specific GitHub workflows to request cloud access tokens on behalf of a defined cloud role.
-    > 2. Every time your job runs, GitHub's OIDC provider auto-generates an OIDC token. This token contains multiple claims to establish a security-hardened and verifiable identity about the specific workflow that is trying to authenticate.
-    > 3. A step or action in the workflow job can request a token from GitHub’s OIDC provider, which can then be presented to the cloud provider as proof of the workflow’s identity.
-    > 4. Once the cloud provider successfully validates the claims presented in the token, it then provides a short-lived cloud access token that is available only for the duration of the job.
-    >
+    From Github:
 
-    Further breakdown:
+    ***1. You establish an OIDC trust relationship in the cloud provider***, allowing specific GitHub workflows to request cloud access tokens on behalf of a defined cloud role.
 
-    Github issues a JSON Web Token (JWT) and present this to AWS STS.
+    ***2. Every time your job runs, GitHub's OIDC provider auto-generates an OIDC token.*** This token contains multiple claims to establish a security-hardened and verifiable identity about the specific workflow that is trying to authenticate.
 
-    AWS will check if it trusts the issuer by checking aws_iam_openid_connect_provider
+    ***3. A step or action in the workflow job can request a token from GitHub’s OIDC provider,*** which can then be presented to the cloud provider as proof of the workflow’s identity.
 
-    It will then check the trust policy to further scope this to this project repo only:
+    ***4. Once validated, a short-lived cloud access token is provided,*** available only for the duration of the job.
+        
 
-    `sub = repo:mazharulislam419/ecs-forge:*`
+    ??? information "Further Breakdown"
 
-    STS issues temporary credentials with specific permissions defined in the policy.
+        Github issues a JSON Web Token (JWT) and present this to AWS STS.
+
+        AWS will check if it trusts the issuer by checking aws_iam_openid_connect_provider
+
+        It will then check the trust policy to further scope this to this project repo only:
+
+        `sub = repo:mazharulislam419/ecs-forge:*`
+
+        STS issues temporary credentials with specific permissions defined in the policy.
 
     ##### Code explanation
 
