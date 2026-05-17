@@ -1,7 +1,7 @@
 # ============================================
 # Secrets & Environment Variables
 # ============================================
-common.hcl
+.venv
 .env
 .env.*
 !.env.example

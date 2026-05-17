@@ -1686,45 +1686,21 @@ Environments are configured with specific values at the environment level (dev/p
 
 === "Dev Environment"
 
-    ``` hcl
-    locals {
-      environment   = "dev"
-      subdomain     = "dev"
-
-      # Network
-      vpc_cidr             = "10.0.0.0/16"
-      public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24"]
-      private_subnet_cidrs = ["10.0.3.0/24", "10.0.4.0/24"]
-
-      # ECS
-      task_cpu    = "256" # 0.25 vCPU
-      task_memory = "512" # 512 MB RAM
-      desired_count = 1 # Single task (save money)
-    }
+    ``` hcl title="infrastructure/live/dev/env.hcl"
+    --8<-- "infrastructure/live/dev/env.hcl"
     ```
 
 === "Prod Environment"
 
-    ``` hcl
-    locals {
-      environment   = "prod"
-      subdomain     = "prod"
-
-      # Network (different CIDR)
-      vpc_cidr             = "10.1.0.0/16"
-      public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
-      private_subnet_cidrs = ["10.1.3.0/24", "10.1.4.0/24"]
-
-      # ECS (more resources)
-      task_cpu    = "512"
-      task_memory = "1024"
-      desired_count = 2 # Two tasks (redundancy)
-    }
+    ``` hcl title="infrastructure/live/prod/env.hcl"
+    --8<-- "infrastructure/live/prod/env.hcl"
     ```
 
 === "Common"
 
-    Show example of common.hcl
+    ``` hcl title="infrastructure/live/_env/common.hcl"
+    --8<-- "infrastructure/live/_env/common.hcl"
+    ```
 
 
 

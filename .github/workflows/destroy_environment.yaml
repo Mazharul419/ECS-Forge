@@ -29,7 +29,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate
+    name: Validate input
     runs-on: ubuntu-latest
     
     steps:
@@ -43,6 +43,8 @@ jobs:
   dev:
     name: dev
     needs: validate
+    env:
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
     runs-on: ubuntu-latest
     environment: dev
     if: inputs.environment == 'dev' || inputs.environment == 'all'
@@ -57,17 +59,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 3600
-
-      - name: Create common.hcl
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/infrastructure/live/_env
-          cat > $GITHUB_WORKSPACE/infrastructure/live/_env/common.hcl <<EOF
-          locals {
-            container_port     = 8080
-            domain_name        = "mazharulislam.dev"
-            cloudflare_zone_id = "${{ secrets.CLOUDFLARE_ZONE_ID }}"
-          }
-          EOF
 
       - name: Set working directory
         id: set-dir
@@ -99,6 +90,8 @@ jobs:
   prod:
     name: prod
     needs: validate
+    env:
+      CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
     runs-on: ubuntu-latest
     environment: prod
     if: inputs.environment == 'prod' || inputs.environment == 'all'
@@ -113,17 +106,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
           aws-region: ${{ env.AWS_REGION }}
           role-duration-seconds: 3600
-
-      - name: Create common.hcl
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/infrastructure/live/_env
-          cat > $GITHUB_WORKSPACE/infrastructure/live/_env/common.hcl <<EOF
-          locals {
-            container_port     = 8080
-            domain_name        = "mazharulislam.dev"
-            cloudflare_zone_id = "${{ secrets.CLOUDFLARE_ZONE_ID }}"
-          }
-          EOF
 
       - name: Set working directory
         id: set-dir
