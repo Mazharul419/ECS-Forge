@@ -31,5 +31,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 USER coder
 EXPOSE 8080
 
-ENTRYPOINT ["/app/lib/node", "out/node/entry.js"]
-CMD ["--bind-addr", "0.0.0.0:8080", "--auth", "none"]
+ENTRYPOINT ["/app/bin/code-server"]
+CMD ["--bind-addr", "0.0.0.0:8080", "--auth", "none"] 

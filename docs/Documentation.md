@@ -5,12 +5,10 @@
 This is documentation for the ECS-Forge repo - it contains docs related to all the code set up for this project.
 
 ## Traffic Flow Explained
-<iframe 
-  src="../ecs-architecture-diagram.html" 
-  width="100%" 
-  height="1200px" 
-  style="border:none;pointer-events:all">
-</iframe>
+
+<figure markdown style="text-align: center;">
+  ![Diagram](ECS overall 1705.svg){ width="1300" }
+</figure>
 
 ### 1. DNS Query for Load Balancer
 
@@ -20,18 +18,18 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
       ![Architecture](DNS 16.05.svg){ width="1300" }
     </figure>
 
-    To access the live application in production environment, the user types in ***dev.mazharulislam.dev*** or ***prod.mazharulislam.dev*** if accessing development environment.
+    To access the live application in environment, the user types in ***dev.mazharulislam.dev*** or ***prod.mazharulislam.dev*** for developer and user accessing the respective environment.
 
     In the internet though, clients and servers don't recognise urls though - they only know IP addresses when it comes to identifying where they are on a network, and therefore establishing a connection.
 
-    A system for translating human-readable urls to computer-readable IP addresses is needed - known as DNS (Domain Name System).
+    A system for translating human-readable urls to computer-readable IP addresses is used for this - known as DNS (Domain Name System).
     
-     1. The client (machine connecting to server) first types in the selected url in their browser.
+     1. The client (machine connecting to server) first types in the selected url in their browser - here it's dev.mazharulislam.dev or prod.mazharulislam.dev
      
      2. This sends out a DNS request for the url, which the DNS resolver receives.
-     3. DNS resolver resolves this url through DNS resolution to the IP address of the publicly-facing Application Load Balancer (ALB).
-     4. Browser sends a HTTP request out allowing the user to connect
+     3. Through multiple requests, the DNS resolver eventually resolves the url to the IP address of the publicly-facing Application Load Balancer (ALB) - allowing the browser to send a HTTP request.
 
+    A more detailed explanation is in the ***Detailed Flow*** section.
 
 === "Detailed Flow"
 
@@ -68,12 +66,53 @@ This is documentation for the ECS-Forge repo - it contains docs related to all t
 
     *If the apex zone mazharulislam.dev was used instead (by replacing **tm** with **@**), Cloudflare can return the ALB IP address via a process called [CNAME flattening](https://developers.cloudflare.com/dns/cname-flattening/)(see also [Flattening diagram](https://developers.cloudflare.com/dns/cname-flattening/cname-flattening-diagram/))
 
-### 2. Internet Gateway to Load Balancer
-Use this section to explain flow from ALB to tasks in private subnet
+### 2. Connection to Load Balancer
 
+Now that the IP address of the ALB is returned, the client can then send a HTTP or HTTPS GET request to the ALB address:
+
+<figure markdown style="text-align: center;">
+  ![Diagram](IGW_ALB.svg){ width=100% }
+</figure>
+
+The ALB has a security group configured to accept all IP addresses for HTTP (port 80) and HTTPS (port 443).
+
+??? information "What is HTTP and HTTPS?"
+
+    HTTP stands for "Hyper-text-transfer protocol", the modern way clients talk to server. HTTPS is same as HTTP, but the S stands for "Secure" - it operates the same as HTTP, however a Secure-Socket Layer (SSL) or Transport Layer Security (TLS) certificate is added to the request, ensuring communication is encrypted and secured. HTTPS is the standard method for communication between machines, and operates on the Application layer of a communications standard known as the TCP/IP model. These are mapped to the standard TCP ports 80 and 443.
+
+To get to the ALB though, the connection first goes throught the internet gateway, which allows the ALB to connect to the internet.
+
+The ALB has two listeners set up, which are configured with rules:
+
+1. If HTTP traffic (port 80), display a 301 redirect, and redirect the browser to HTTPS (443).
+2. If HTTPS traffic, terminate the TLS/SSL connection using the AWS Certificate Manager (ACM) certificate.
+
+The ALB now can forward requests to the live running applications.
 
 ### 3. Load Balancer to ECS Target Group
-Explain how ECS tasks get scheduled and stuff.
+
+<figure markdown style="text-align: center;">
+  ![Diagram](ALB_Tasks.svg){ width=1200px }
+</figure>
+
+The ALB now forwards HTTP requests internally to a pre-defined target group.
+
+!!! information "Target groups"
+    Target groups [route requests to individual registered targets](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/load-balancer-target-groups.html). In this case it is Elastic Container Service (ECS) tasks that are registered using the it's Service.
+
+This resource is configured to check the health of registered targets within the target group. It usees a round-robin algorithm to distribute traffic evenly to the targets on the specified port, balancing the load it recieves - hence the name.
+
+What are the targets being registered though?
+
+The targets are EC2 instances containing live running applications. These are abstracted away and created using a service known as Elastic Container Service (ECS):
+
+<figure markdown style="text-align: center;">
+  ![Diagram](ECS Tasks.svg){ width=800px }
+</figure>
+
+As part of this, a cluster is defined - which is [a logical grouping of tasks or services](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html).
+
+The type of cluster is known as Fargate, which provides serverless compute i.e,  no infrastructure management.
 
 ### 4. ECS Tasks to VPC Endpoints
 Also explain how applications can access AWS services privately through VPC Endpoints
