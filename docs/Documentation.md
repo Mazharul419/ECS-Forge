@@ -1645,6 +1645,8 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
 
     `client_id_list` tells AWS to only accept tokens where the audience (`aud`) = `sts.amazonaws.com` - the Security Token Service [designed to issue temporary credentials for users](https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html).
 
+    The Trust policy is scoped to specific workflows for each workflow [using `job_workflow_ref`](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html#condition-keys-wif) under Github.
+
 
     The Trust policy (WHO can assume the role) is then written:
 
