@@ -187,6 +187,8 @@ Thin wrapper over Terraform designed to:
 ├── README.md
 ├── LICENSE.txt
 ├── Dockerfile
+├── mkdocs.yml
+├── requirements.txt
 ├── app/
 ├── docs/
 ├── infrastructure/
@@ -204,33 +206,32 @@ Thin wrapper over Terraform designed to:
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
 
 ### Structure Explained
-#### README, LICENSE, Dockerfile, app/
-=== "README, LICENSE.txt"
-
-    ```
-    ├── README.md
-    ├── LICENSE.txt
-    ```
+#### README, LICENSE.txt
 
 
-
-    The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
-
-    The LICENSE.txt file specifies how the repo can be distributed and used.
+```
+├── README.md
+├── LICENSE.txt
+```
 
 
 
-=== "Dockerfile, app/"
+The ReadME.md file is for any person visiting the repo to understand at a high level what the project does and how they can set this up for themselves.
 
-    ```
-    ├── Dockerfile
-    ├── app/  
-    ``` 
-    According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
+The LICENSE.txt file specifies how the repo can be distributed and used.
 
-    The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
 
-#### docs/
+#### Dockerfile, app/
+
+```
+├── Dockerfile
+├── app/  
+``` 
+According to [Docker docs](https://docs.docker.com/reference/dockerfile/) the Dockerfile is a text file that contains all the commands that a user would run on a command line that tells Docker to build the image.
+
+The app directory contains the application itself - though it is not used in the Dockerfile (due to issues with git submodules not pulling the application properly)
+
+#### mkdocs.yml, requirements.txt, docs/
 
 ```
 ├── docs
@@ -259,86 +260,84 @@ The `Documentation.md` file (this file) is documentation for the ECS-Forge repo 
     ├── bootstrap/
     ├── live/
     └── modules/
-
 ```
 This directory contains EVERYTHING related to the infrastructure required to deploy the application. 
 
 **Due to Terragrunt tooling the file structure is VERY DIFFERENT from Terraform.**
 
-=== "Terragrunt root files and graph.png"
-    ```
-    └── infrastructure
-        ├── backend.tf
-        ├── provider.tf
-        ├── graph.png
-        ├── terragrunt.hcl
-    ```
+#### Terragrunt root files and graph.png
+```
+└── infrastructure
+    ├── backend.tf
+    ├── provider.tf
+    ├── graph.png
+    ├── terragrunt.hcl
+```
 
-    Terragrunt automatically generates `backend.tf` and `provider.tf` files to tell terraform where the S3 bucket is stored and which providers to use respectively.
-    
-    They are generated every run and can be safely deleted.
+Terragrunt automatically generates `backend.tf` and `provider.tf` files to tell terraform where the S3 bucket is stored and which providers to use respectively.
 
-    These are generated using the `terragrunt.hcl` file found at root - this file defines the backend and provider files AT ROOT
-    
-    And INJECTS these files in the relevant environment at runtime - avoiding error-prone and cumbersome manual repetition of modules.
+They are generated every run and can be safely deleted.
 
-    Updating configurations becomes a breeze. 
+These are generated using the `terragrunt.hcl` file found at root - this file defines the backend and provider files AT ROOT
 
-    `graph.png` is a cylic-something DAG graph made from the explicit dependency ordering - it is a visual representation of module dependencies in both environments. This was generated from the `terragrunt graph-dependencies` command:
-    <br><br>
-    
-    ![alt text](graph.png)
+And INJECTS these files in the relevant environment at runtime - avoiding error-prone and cumbersome manual repetition of modules.
 
-=== "bootstrap/ directory"
-    ```
-      .
-    ├── bootstrap.sh
-    └── destroy.sh
-    ```
-    Contains the scripts for bootstrapping and destroying the foundational infrastructure for avoiding various circular dependencies - covered in [bootstrap script section](#bootstrap-script)
+Updating configurations becomes a breeze. 
 
-=== "live/ directory"
+`graph.png` is a cylic-something DAG graph made from the explicit dependency ordering - it is a visual representation of module dependencies in both environments. This was generated from the `terragrunt graph-dependencies` command:
 
-    ```
-    .
-    ├── _env
-    │   └── common.hcl
-    ├── global
-    │   ├── ecr/
-    │   └── oidc/
-    ├── dev
-    │   ├── acm/
-    │   ├── alb/
-    │   ├── dns/
-    │   ├── ecs/
-    │   ├── security-groups/
-    │   ├── vpc/
-    │   ├── vpc-endpoints/ 
-    │   └── env.hcl
-    └── prod
-        ├── acm/
-        ├── alb/
-        ├── dns/
-        ├── ecs/
-        ├── security-groups/
-        ├── vpc/
-        ├── vpc-endpoints/ 
-        └── env.hcl
-    ```
+![alt text](graph.png)
 
-    This directory contains the live Terragrunt configuration of the:
+#### bootstrap/ directory
+```
+  .
+├── bootstrap.sh
+└── destroy.sh
+```
+Contains the scripts for bootstrapping and destroying the foundational infrastructure for avoiding various circular dependencies - covered in [bootstrap script section](#bootstrap-script)
 
-    - global infra: Modules that bootstrap the dev and prod environments
-    - dev infra: Modules for development enviromnent
-    - prod infra: Modules for production environment
-    - _env/common.hcl: This a file containing common values between the above directories
+#### live/ directory
 
-    To understand how this works:
-    1. The directories in each environment contain specific configurations [single instances of infrastructure](https://docs.terragrunt.com/getting-started/terminology#unit) managed by Terragrunt - represented by the presence of terragrunt.hcl files which define the [Terragrunt configuration](https://docs.terragrunt.com/reference/hcl/)
+```
+.
+├── _env
+│   └── common.hcl
+├── global
+│   ├── ecr/
+│   └── oidc/
+├── dev
+│   ├── acm/
+│   ├── alb/
+│   ├── dns/
+│   ├── ecs/
+│   ├── security-groups/
+│   ├── vpc/
+│   ├── vpc-endpoints/ 
+│   └── env.hcl
+└── prod
+    ├── acm/
+    ├── alb/
+    ├── dns/
+    ├── ecs/
+    ├── security-groups/
+    ├── vpc/
+    ├── vpc-endpoints/ 
+    └── env.hcl
+```
 
-    This the HOW and WHERE - which environment, values, and where to store state.
+This directory contains the live Terragrunt configuration of the:
 
-=== "modules/ directory"
+- global infra: Modules that bootstrap the dev and prod environments
+- dev infra: Modules for development enviromnent
+- prod infra: Modules for production environment
+- _env/common.hcl: This a file containing common values between the above directories
+
+To understand how this works:
+1. The directories in each environment contain specific configurations [single instances of infrastructure](https://docs.terragrunt.com/getting-started/terminology#unit) managed by Terragrunt - represented by the presence of terragrunt.hcl files which define the [Terragrunt configuration](https://docs.terragrunt.com/reference/hcl/)
+
+This the HOW and WHERE - which environment, values, and where to store state.
+
+#### modules/ directory
 
     ```
     .
@@ -369,7 +368,8 @@ This directory contains EVERYTHING related to the infrastructure required to dep
     `outputs.tf`
     `variables.tf`
 
-<p align="right">(<a href="#docs-top">back to top</a>)</p>
+<p align="right">(<a href="#structure-explained">back to top of section</a>)</p>
+<p align="right">(<a href="#introduction">back to top</a>)</p>
 
 ## DEEP DIVE
 ### Root Configuration (terragrunt.hcl)
