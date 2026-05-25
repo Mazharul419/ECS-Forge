@@ -36,7 +36,7 @@
     A browser-based Integrated Development Environnment hosted on ECS Fargate</strong>
     <br />
     <br>
-    <a href="https://mazharul419.github.io/ECS-Forge/Architectural_Decisions/"> Key Architectural Decisions</a>
+    <a href="https://mazharul419.github.io/ECS-Forge/Architectural_Decisions/"><strong> Key Architectural Decisions</a>
     &middot;
     <a href="https://mazharul419.github.io/ECS-Forge/Documentation/"><strong> In-depth Documentation</a>
     &middot;
