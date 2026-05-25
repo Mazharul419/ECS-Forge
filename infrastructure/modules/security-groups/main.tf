@@ -54,8 +54,8 @@ resource "aws_security_group_rule" "alb_ingress_https" {
 
 resource "aws_security_group_rule" "alb_egress" {
     type = "egress"
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = var.container_port
+    to_port     = var.container_port
     protocol    = "tcp"           # ONLY to ECS on container port (8080)
     source_security_group_id = aws_security_group.ecs.id
     security_group_id = aws_security_group.alb.id
@@ -67,7 +67,7 @@ resource "aws_security_group_rule" "ecs_ingress" {
     from_port       = var.container_port
     to_port         = var.container_port
     protocol        = "tcp"
-    source_security_group_id = aws_security_group.alb.id  # ONLY from ALB on 8080!
+    source_security_group_id = aws_security_group.alb.id  # ONLY from ALB on same port (8080)
     security_group_id = aws_security_group.ecs.id
   }
 
@@ -76,7 +76,7 @@ resource "aws_security_group_rule" "ecs_egress" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    source_security_group_id = aws_security_group.vpc_endpoints.id # VPC endpoints for ECS must allow port 443
+    source_security_group_id = aws_security_group.vpc_endpoints.id # VPC endpoints for ECS must allow HTTPS (port 443)
     security_group_id = aws_security_group.ecs.id
     description = "Allow all outbound traffic"
   }
