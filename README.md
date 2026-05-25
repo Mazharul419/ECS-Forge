@@ -102,6 +102,7 @@ The application is hosted on AWS - hidden behind an application load balancer.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+
 ## Built With
 
 #### Application setup:
@@ -139,15 +140,25 @@ The application is hosted on AWS - hidden behind an application load balancer.
 
 ## Project Structure
 ```
+.
+├── README.md
+├── LICENSE.txt
+├── Dockerfile
 ├── mkdocs.yml
 ├── requirements.txt
-├── docs
-│   ├── Architectural_Decisions.md
-│   ├── Documentation.md
-│   ├── image-1.png
-│   ├── image-2.png
-│   ├── image.png
-│   └── index.md
+├── app/
+├── docs/
+├── infrastructure/
+│   ├── backend.tf
+│   ├── provider.tf
+│   ├── bootstrap/
+│   ├── live/
+│   ├── modules/
+│   └── root.hcl
+└── other/
+    ├── grype/
+    ├── policies/
+    └── screenshots/
 ```
 
 ## Application
