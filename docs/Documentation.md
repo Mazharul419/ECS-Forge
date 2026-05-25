@@ -234,6 +234,8 @@ The app directory contains the application itself - though it is not used in the
 #### mkdocs.yml, requirements.txt, docs/
 
 ```
+├── mkdocs.yml
+├── requirements.txt
 ├── docs
 │   ├── Architectural_Decisions.md
 │   ├── Documentation.md
@@ -242,6 +244,9 @@ The app directory contains the application itself - though it is not used in the
 │   ├── image.png
 │   └── index.md
 ```
+As part of the documentation I am using MKDocs on Github pages to provide this. MKDocs requires a .yml file for templating the structure of documentation including extensions. A requirements.txt file is also defined to download this and extensions.
+
+> Since python is used and as best practise, a seperate .venv file is used but not commited. This is used to manage dependencies on a per-project basis, so whatever is downloaded for MKDocs to run does not conflict elsewhere on my system.
 
 This directory contains the documentation related to this project.
 
