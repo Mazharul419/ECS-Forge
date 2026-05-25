@@ -25,9 +25,9 @@
 
 <h3 align="center">ECS-Forge</h3>
 
-<img width="569" height="500" alt="ECS Diagram Detailed - 25 04-Diagram Simple 25 04 drawio" src="https://github.com/user-attachments/assets/7beb5cfb-9ae9-44f6-b8de-142df7fdb773" />
+<!-- <img width="569" height="500" alt="ECS Diagram Detailed - 25 04-Diagram Simple 25 04 drawio" src="https://github.com/user-attachments/assets/7beb5cfb-9ae9-44f6-b8de-142df7fdb773" /> -->
 
-
+![alt text](<docs/ECS overall 1705.svg>)
 
   <p align="center">
     <br>

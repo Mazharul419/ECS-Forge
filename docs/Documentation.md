@@ -110,12 +110,48 @@ The targets are EC2 instances containing live running applications. These are ab
   ![Diagram](ECS Tasks.svg){ width=800px }
 </figure>
 
+ECS is AWS's way of managing containers at scale - it provides resources for applications to run on.
+
 As part of this, a cluster is defined - which is [a logical grouping of tasks or services](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html).
 
-The type of cluster is known as Fargate, which provides serverless compute i.e,  no infrastructure management.
+The type of cluster is known as Fargate, which launches containers using a serverless approach i.e., underlying servers running applications are managed by AWS, not the user.
+
+!!! success "Architectural Decision made"
+    | Decision | Choice Made | Alternative | Rationale |
+    |---|---|---|---|
+    | Container orchestration | ECS Fargate | EC2-based ECS / self-managed | Serverless compute; no server management |
+
+As part of the setup - the tasks are defined using a Task Definition, which specifies the image and port to run the application containers on, the level of compute, memory, and a log group - to send container logs to via Cloudwatch.
+
+A service is defined which is the controller for this, which monitors the current state and reconciles it against the desired state of running tasks, in this case 1.
 
 ### 4. ECS Tasks to VPC Endpoints
-Also explain how applications can access AWS services privately through VPC Endpoints
+<figure markdown style="text-align: center;">
+  ![Architecture](ECStoEndpoints.svg){ width=1000px }
+</figure>
+
+The Tasks running applications need to talk to AWS services. Specifically,it needs to: 
+
+1. Pull images from ECR for Task starting
+2. Send container logs to Cloudwatch for monitoring/debugging
+
+For ECR - there are several endpoints:
+
+.ecr.api interface endpoint: Allows tasks to authenticate to ECR to authorise the image pull
+
+.ecr.dkr interface endpoint: Allows tasks to performs Docker Push/Pull command
+
+.s3 Gateway endpoint: Pulls image layers stored from S3 to tasks (ECR is backed by S3)
+
+For Cloudwatch:
+
+.logs interface endpoint: Allows tasks to send container logs to Cloudwatch
+
+!!! success "Architectural Decision made"
+     | Decision | Choice Made | Alternative | Rationale |
+     |---|---|---|---|
+     | Private connectivity | VPC Endpoints | NAT Gateway | Cheaper: Cheaper running price and per-GB data processing costs; Secure - keeps traffic off the public internet |
+
 
 
 <p align="right">(<a href="#docs-top">back to top</a>)</p>
@@ -1646,8 +1682,7 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     `client_id_list` tells AWS to only accept tokens where the audience (`aud`) = `sts.amazonaws.com` - the Security Token Service [designed to issue temporary credentials for users](https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html).
 
     The Trust policy is scoped to specific workflows for each workflow [using `job_workflow_ref`](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_iam-condition-keys.html#condition-keys-wif) under Github.
-
-
+    
     The Trust policy (WHO can assume the role) is then written:
 
     ``` hcl title="OIDC Trust Policy"
@@ -1681,6 +1716,10 @@ This block [queries the avaibility zones within AWS](https://registry.terraform.
     `Effect = "Allow"` grants the trust.
 
     `jsonencode` is a HCL function required since AWS expects policy to be written in JSON string - not terraform code.
+
+    !!! information "Info"
+
+    Further info can be found here: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html#id_roles_additional-resources
 
 === "Description"
 
