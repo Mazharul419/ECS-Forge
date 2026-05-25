@@ -9,8 +9,8 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 
-resource "aws_iam_role" "github_actions" {
-  name = "github-actions-role"
+resource "aws_iam_role "github_actions_build_push_image_role" {
+  name = "github-actions-ecr-role"
   max_session_duration = 7200
 
   assume_role_policy = jsonencode({
@@ -25,15 +25,100 @@ resource "aws_iam_role" "github_actions" {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         }
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:${var.github_org}/${var.github_repo}:*"
+        StringEquals = {
+          "token.actions.githubusercontent.com:job_workflow_ref" = "${var.github_org}/${var.github_repo}/.github/workflows/build_push_image.yaml@refs/head/main"
         }
       }
     }]
   })
 
   tags = {
-    Name = "github-actions-role"
+    Name = "github-actions-ecr-role"
+  }
+}
+
+
+resource "aws_iam_role" "github_actions_deploy_role" {
+  name = "github-actions-deploy-role"
+  max_session_duration = 900
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringEquals = {
+          "token.actions.githubusercontent.com:job_workflow_ref" = "${var.github_org}/${var.github_repo}/.github/workflows/deploy_environment.yaml@refs/head/main"
+        }
+      }
+    }]
+  })
+
+  tags = {
+    Name = "github-actions-deploy-role"
+  }
+}
+
+resource "aws_iam_role" "github_actions_destroy_role" {
+  name = "github-actions-destroy-role"
+  max_session_duration = 900
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringEquals = {
+          "token.actions.githubusercontent.com:job_workflow_ref" = "${var.github_org}/${var.github_repo}/.github/workflows/destroy_environment.yaml@refs/head/main"
+        }
+      }
+    }]
+  })
+
+  tags = {
+    Name = "github-actions-destroy-role"
+  }
+}
+
+resource "aws_iam_role "github_actions_lint_terragrunt_role" {
+  name = "github-actions-lint-role"
+  max_session_duration = 900
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+        StringEquals = {
+          "token.actions.githubusercontent.com:job_workflow_ref" = "${var.github_org}/${var.github_repo}/.github/workflows/lint_terragrunt_code.yaml@refs/head/main"
+        }
+      }
+    }]
+  })
+
+  tags = {
+    Name = "github-actions-lint-role"
   }
 }
 
@@ -42,7 +127,7 @@ data "aws_caller_identity" "current" {} # Data source for account ID, needed for
 # Github actions policy for ECR access
 resource "aws_iam_role_policy" "github_actions_ecr" {
   name = "github-actions-ecr-policy"
-  role = aws_iam_role.github_actions.id
+  role = aws_iam_role.github_actions_ecr_role
 
 policy = jsonencode({
   Version = "2012-10-17"
