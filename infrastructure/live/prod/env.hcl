@@ -10,5 +10,5 @@ locals {
   # ECS (more resources)
   task_cpu      = "512"
   task_memory   = "1024"
-  desired_count = 2 # Two tasks (redundancy)
+  desired_count = 10 # Two tasks (redundancy)
 }
